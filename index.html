@@ -1829,11 +1829,39 @@
 </p>
 
 <div class="legend">
-  <div class="legend-item"><span class="legend-dot" style="background:#6b7280;"></span> ⚪ 三方一致（7 條）</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#6b7280;"></span> ⚪ 格式層一致（7 條）</div>
   <div class="legend-item"><span class="legend-dot" style="background:var(--success);"></span> 🟢 LRP 有實作（13 條）</div>
-  <div class="legend-item"><span class="legend-dot" style="background:var(--warning);"></span> 🟡 OP 自我修養（5 條）</div>
-  <div class="legend-item"><span class="legend-dot" style="background:var(--danger);"></span> 🔴 沒 follow（6 條）</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--warning);"></span> 🟡 OP 有在守（5 條）</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--danger);"></span> 🔴 尚未 follow（6 條）</div>
 </div>
+
+<table style="font-size:13px;">
+  <thead>
+    <tr><th>分類</th><th>定義</th><th>例子</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="tag tag-gray">⚪ 格式層一致</span></td>
+      <td>規則屬於格式層天然性質（長度、位數、年份），三方自然對齊，不需主動實作邏輯</td>
+      <td>14 碼固定長度、pos1-2 收單關別 2 碼、pos5-6 民國年</td>
+    </tr>
+    <tr>
+      <td><span class="tag tag-green">🟢 LRP 有實作</span></td>
+      <td>LRP 原始碼明確寫 check / enforce 邏輯去執行這條規則</td>
+      <td>自由港鎖類別（<code>ckFreeTrade</code>）、A72 查重（<code>lcGet_4</code>）、B1/B2/G2 園區字母組字</td>
+    </tr>
+    <tr>
+      <td><span class="tag tag-orange">🟡 OP 有在守</span></td>
+      <td>LRP 沒強制邏輯，但 OP 實際操作時都遵守 → 新系統可改由系統自動帶入鎖死</td>
+      <td>Tier A 海運 pos10 = 收單首字（99.27-100% 吻合）、第 10 碼不選 I/L/O</td>
+    </tr>
+    <tr>
+      <td><span class="tag tag-red">🔴 尚未 follow</span></td>
+      <td>LRP 沒實作 + DB 實測也未依規則執行 — 需與規則制訂方討論實作方向</td>
+      <td>B1 第 3-4 碼鎖 B1（DB 90.5% 違反）、G7/T1 海運郵包特例（DB 0-1 筆）</td>
+    </tr>
+  </tbody>
+</table>
 
 <h3>B.1 結構規則（共通 14 碼骨架）</h3>
 
@@ -1960,14 +1988,14 @@
   </div>
 </div>
 
-<h3>B.8 給新系統開發者的 5 條洞察</h3>
+<h3>B.8 新系統實作原則</h3>
 
 <ol style="margin-left:24px; color:var(--gray-700);">
-  <li><strong>「LRP 有做但沒強制」的項目全部改 Layer 1 autocomplete readonly</strong>：pos3-4 四種定義連動、Tier A 海運 pos10=pos1、FTZ checkbox 鎖類別。LRP 靠 OP 10 年紀律達 99%+ 不是設計對是運氣。</li>
-  <li><strong>「LRP 有邏輯但註解掉」的項目 const 強制</strong>：I/L/O 黑名單（L1274 被 <code>{}</code> 包掉）、快遞 A/B/C/D 黑名單（全空運擋）。</li>
-  <li><strong>「Excel 寫死但實務極罕」的項目先擱置</strong>：G5 海轉空、G7/T1 郵包（DB 0-1 筆，五崧無業務）。等貴方回覆 Q6/Q7/Q8 再決定。</li>
-  <li><strong>「B1 資料髒」需遷移策略</strong>：90.5% 舊 B1 違反 pos3-4 鎖 B1 規則，新系統強制後 legacy 資料要標 <code>is_legacy=true</code> 或只保歷史查詢。</li>
-  <li><strong><code>tpt_mode</code> 欄位不能直接推斷海/空運樣式</strong>：DB 實測 <code>tpt_mode=99</code>（自由港區內交易）混用純數字 / 字母兩種樣式（F3 FTZ 99.87% 字母、B6 FTZ 69.68% 數字）。Layer 1 autocomplete 必須給 OP 明確選擇。</li>
+  <li><strong>OP 有在守的規則（🟡）→ 系統自動帶入鎖死</strong>：Tier A 海運 pos10 = 收單首字、pos3-4 連動、FTZ checkbox 鎖類別 — 新系統前端 autocomplete 自動套規則，不再靠 OP 逐次注意。</li>
+  <li><strong>黑名單類規則 → const 前端強制</strong>：I/L/O 全局黑名單、快遞關區 A/B/C/D 黑名單 — 新系統前端直接擋，OP 無法選到這些字母。</li>
+  <li><strong>實務量極少的特例 → 等規則制訂方確認再決定</strong>：G5 海轉空、G7 / T1 海運郵包規則（DB 實測 0-1 筆）— 視業務需要或合規要求決定是否實作。</li>
+  <li><strong>舊資料與新規則不一致 → 明確的遷移策略</strong>：例如 B1 舊報單 90.5% 違反新規則，採「legacy 標記，保留歷史查詢不回推」為原則。</li>
+  <li><strong>海/空運樣式不靠 LRP 欄位自動推斷</strong>：新系統讓 OP 在打單畫面明確選擇海運或空運樣式，不依賴歷史欄位推測，確保資料清晰。</li>
 </ol>
 </div>
 
