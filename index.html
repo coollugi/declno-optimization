@@ -439,8 +439,8 @@
     </tr>
     <tr>
       <td>4</td>
-      <td>B1 類別 90.5%（1,072 / 1,185）舊資料違反「pos3-4 鎖 B1」規則</td>
-      <td>新系統強制鎖；legacy B1 標 <code>is_legacy</code> 不回推取號</td>
+      <td>B1 類別 <strong>近 5 年 99.93% 符合</strong>「pos3-4 鎖 B1」規則（2021-2025 共 4,143 筆只 3 筆空白）；舊資料（2020 以前）6,244 筆中 1,441 筆空白（23.1%），主要為紀律未定型前的歷史資料</td>
+      <td>新系統強制鎖跟近年實務一致；舊 1,441 筆空白標 <code>is_legacy</code> 不回推</td>
     </tr>
     <tr>
       <td>5</td>
@@ -1485,9 +1485,9 @@
 <div class="section" id="s10">
 <h2>十、Legacy 遷移策略</h2>
 
-<p>新系統上線時需決定舊 LRP 資料怎麼遷移。三方驗證發現部分類別的舊資料違反 2026 Excel 規則（最嚴重是 B1 類別 90.5% 違反），需分類處理。</p>
+<p>新系統上線時需決定舊 LRP 資料怎麼遷移。三方驗證發現大多數類別近 5 年實務跟新規則高度一致，只有 B1 類別的 2020 以前舊資料有較多（23.1%）pos3-4 空白，需分類處理。</p>
 
-<h3>10.1 各類別資料健康度</h3>
+<h3>10.1 各類別資料健康度（2021-2025 近 5 年 DB 實測）</h3>
 
 <table>
   <thead>
@@ -1495,54 +1495,80 @@
   </thead>
   <tbody>
     <tr>
-      <td><code>B2</code></td>
-      <td class="num">150,352</td>
-      <td><span class="tag tag-green">99.76%</span></td>
+      <td><code>B1</code>（pos3-4 鎖 B1）</td>
+      <td class="num">4,143</td>
+      <td><span class="tag tag-green">99.93%</span></td>
       <td>直接遷</td>
     </tr>
     <tr>
-      <td><code>G2</code></td>
-      <td class="num">138,171</td>
-      <td><span class="tag tag-green">88.76%</span></td>
-      <td>直接遷（11% 略有偏離可接受）</td>
+      <td><code>B2</code>（pos3-4 鎖 B2）</td>
+      <td class="num">154,294（全庫）</td>
+      <td><span class="tag tag-green">98.68%</span></td>
+      <td>直接遷</td>
     </tr>
     <tr>
-      <td><code>D5 FTZ</code></td>
-      <td class="num">159</td>
+      <td><code>G2</code>（pos3-4 鎖 G2）</td>
+      <td class="num">206,974（全庫）</td>
+      <td><span class="tag tag-green">99.66%</span></td>
+      <td>直接遷</td>
+    </tr>
+    <tr>
+      <td><code>D5 FTZ</code>（鎖 D5）</td>
+      <td class="num">149</td>
       <td><span class="tag tag-green">100%</span></td>
       <td>直接遷</td>
     </tr>
     <tr>
-      <td><code>B8 FTZ</code></td>
-      <td class="num">703</td>
+      <td><code>B6 FTZ</code>（鎖 B6）</td>
+      <td class="num">12,559</td>
       <td><span class="tag tag-green">100%</span></td>
       <td>直接遷</td>
     </tr>
     <tr>
-      <td><code>B9 FTZ</code></td>
-      <td class="num">28,490</td>
-      <td><span class="tag tag-green">99.99%</span></td>
+      <td><code>B8 FTZ</code>（鎖 B8）</td>
+      <td class="num">597</td>
+      <td><span class="tag tag-green">100%</span></td>
       <td>直接遷</td>
     </tr>
     <tr>
-      <td>Tier A 海運各類</td>
+      <td><code>B9 FTZ</code>（鎖 B9）</td>
+      <td class="num">22,285</td>
+      <td><span class="tag tag-green">100%</span></td>
+      <td>直接遷</td>
+    </tr>
+    <tr>
+      <td><code>D8 FTZ</code>（鎖 D8）</td>
+      <td class="num">472</td>
+      <td><span class="tag tag-green">100%</span></td>
+      <td>直接遷</td>
+    </tr>
+    <tr>
+      <td>Tier A 海運各類（pos10 = 收單首字）</td>
       <td class="num">41,426</td>
       <td><span class="tag tag-green">99.27-100%</span></td>
       <td>直接遷</td>
     </tr>
     <tr>
-      <td><code>B1</code></td>
-      <td class="num">1,185</td>
-      <td><span class="tag tag-red">9.5%</span>（1,072 筆空白 pos3-4）</td>
+      <td><code>B1</code> 舊資料（2020 以前）</td>
+      <td class="num">6,244</td>
+      <td><span class="tag tag-orange">76.5%</span>（1,441 筆空白）</td>
       <td><strong>標 is_legacy 不回推</strong></td>
     </tr>
   </tbody>
 </table>
 
-<h3>10.2 B1 類別處理（90.5% 違規）</h3>
+<p style="font-size:13px; color:var(--gray-500);">
+  註：B2 / G2 為全時期樣本（監管編號 + 自編序號 4+4 切法橫跨民國各年代樣本量大），其他類別為 2021-2025 近 5 年。B8 / B9 / D8 FTZ 近 5 年實測全數 100% 符合，之前 v3.2 報告估算樣本涵蓋範圍較窄（如 B8 FTZ 703 筆、B9 FTZ 28,490 筆），2026-04-22 v3.3 以近 5 年資料重驗後，近年資料全部符合。
+</p>
+
+<h3>10.2 B1 舊資料處理</h3>
+
+<div class="success-box">
+  <strong>近 5 年 B1 合規狀況非常好</strong>：2021-2025 共 4,143 筆 B1 報單中 99.93% 已鎖 pos3-4 = 'B1'，僅 3 筆空白。新系統強制規則跟目前 OP 實務一致，不會造成阻力。
+</div>
 
 <div class="warning-box">
-  <strong>現況</strong>：1,072 筆舊 B1 報單 pos3-4 為空白（不是 'B1'），多為 99-04 年舊資料。新系統強制 pos3-4 = 'B1' 後這些資料會通不過驗證。
+  <strong>需處理的是舊資料</strong>：2020 以前共 6,244 筆 B1 中 1,441 筆 pos3-4 為空白（23.1%），主要為報關紀律尚未完全定型前的歷史資料。新系統強制 pos3-4 = 'B1' 後這些舊資料會通不過驗證。
 </div>
 
 <div class="success-box">
@@ -1891,8 +1917,8 @@
 <div class="legend">
   <div class="legend-item"><span class="legend-dot" style="background:#6b7280;"></span> ⚪ 格式層一致（7 條）</div>
   <div class="legend-item"><span class="legend-dot" style="background:var(--success);"></span> 🟢 LRP 有實作（13 條）</div>
-  <div class="legend-item"><span class="legend-dot" style="background:var(--warning);"></span> 🟡 OP 有在守（5 條）</div>
-  <div class="legend-item"><span class="legend-dot" style="background:var(--danger);"></span> 🔴 尚未 follow（6 條）</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--warning);"></span> 🟡 OP 有在守（6 條）</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--danger);"></span> 🔴 尚未 follow（5 條）</div>
 </div>
 
 <table style="font-size:13px;">
@@ -1918,7 +1944,7 @@
     <tr>
       <td><span class="tag tag-red">🔴 尚未 follow</span></td>
       <td>LRP 沒實作 + DB 實測也未依規則執行 — 需與規則制訂方討論實作方向</td>
-      <td>B1 第 3-4 碼鎖 B1（DB 90.5% 違反）、G7/T1 海運郵包特例（DB 0-1 筆）</td>
+      <td>G7/T1 海運郵包特例（DB 0-1 筆）、Tier C 海運 Excel 寫不鎖但實務偏緊</td>
     </tr>
   </tbody>
 </table>
@@ -1934,7 +1960,7 @@
     <tr><td>2</td><td>pos1-2 = 收單關別 2 碼</td><td>✅ UI 層預帶</td><td>✅ 100%</td><td><span class="tag tag-gray">⚪</span></td></tr>
     <tr><td>3</td><td>pos3-4 四種定義</td><td>✅ <code>PUB_PROC</code> 有連動</td><td>✅ 非空白時 100% ≠ pos1-2</td><td><span class="tag tag-green">🟢</span></td></tr>
     <tr><td>4</td><td>pos3-4 鎖報單類別（主流類別）</td><td>⚠️ UI 預設不強制</td><td>✅ 99.7%+</td><td><span class="tag tag-orange">🟡</span></td></tr>
-    <tr><td>5</td><td>pos3-4 鎖 B1</td><td>❌ 未強制</td><td>❌ 90.5% 違反</td><td><span class="tag tag-red">🔴</span></td></tr>
+    <tr><td>5</td><td>pos3-4 鎖 B1</td><td>⚠️ 未明確強制</td><td>✅ 近 5 年 99.93% / ⚠️ 舊資料 (2020 以前) 76.5%</td><td><span class="tag tag-orange">🟡</span></td></tr>
     <tr><td>6</td><td>pos5-6 = 民國年 2 碼</td><td>✅ 自動帶</td><td>✅ 100%</td><td><span class="tag tag-gray">⚪</span></td></tr>
   </tbody>
 </table>
@@ -2077,14 +2103,14 @@
   <div class="bar-row">
     <div class="bar-label">🟡 OP 自我修養</div>
     <div class="bar-track">
-      <div class="bar-fill" style="width:16%; background:var(--warning);">5 條</div>
+      <div class="bar-fill" style="width:19%; background:var(--warning);">6 條</div>
     </div>
     <div class="bar-info">Tier A 海運 pos10、I/L/O 擋、A/B/C/D 擋</div>
   </div>
   <div class="bar-row">
     <div class="bar-label">🔴 沒 follow</div>
     <div class="bar-track">
-      <div class="bar-fill" style="width:19%; background:var(--danger);">6 條</div>
+      <div class="bar-fill" style="width:16%; background:var(--danger);">5 條</div>
     </div>
     <div class="bar-info">B1 類別鎖、Tier C 海運、G5/G7/T1 郵包、B1 td_bfno</div>
   </div>
@@ -2096,7 +2122,7 @@
   <li><strong>OP 有在守的規則（🟡）→ 系統自動帶入鎖死</strong>：Tier A 海運 pos10 = 收單首字、pos3-4 連動、FTZ checkbox 鎖類別 — 新系統前端 autocomplete 自動套規則，不再靠 OP 逐次注意。</li>
   <li><strong>黑名單類規則 → const 前端強制</strong>：I/L/O 全局黑名單、快遞關區 A/B/C/D 黑名單 — 新系統前端直接擋，OP 無法選到這些字母。</li>
   <li><strong>實務量極少的特例 → 等規則制訂方確認再決定</strong>：G5 海轉空、G7 / T1 海運郵包規則（DB 實測 0-1 筆）— 視業務需要或合規要求決定是否實作。</li>
-  <li><strong>舊資料與新規則不一致 → 明確的遷移策略</strong>：例如 B1 舊報單 90.5% 違反新規則，採「legacy 標記，保留歷史查詢不回推」為原則。</li>
+  <li><strong>舊資料與新規則不一致 → 明確的遷移策略</strong>：例如 B1 類別 2020 以前舊資料 23.1% pos3-4 空白（近 5 年已 99.93% 合規），採「legacy 標記，保留歷史查詢不回推」為原則。</li>
   <li><strong>海/空運樣式不靠 LRP 欄位自動推斷</strong>：新系統讓 OP 在打單畫面明確選擇海運或空運樣式，不依賴歷史欄位推測，確保資料清晰。</li>
 </ol>
 </div>
