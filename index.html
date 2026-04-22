@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>報關系統 — 報單取號優化方案 v3.2</title>
+<title>報關系統 — 報單取號優化方案 v3.3</title>
 <style>
   :root {
     --primary: #1a56db;
@@ -317,13 +317,13 @@
 
 <div class="report-header">
   <h1>報關系統 — 報單取號優化方案</h1>
-  <div class="subtitle">三方驗證後的 Tier 動態策略：23 類別完整覆蓋 + 32 條規則分級實作</div>
+  <div class="subtitle">Tier 動態策略 + 站別維度補回：借號結構性消滅 + OP 離線分派辨識</div>
   <div class="meta">
     <span>八拍子</span>
     <span>2026 年 4 月</span>
-    <span>取代 v2 站碼字母方案（2026-04-09）</span>
+    <span>承接 v3.2（2026-04-22），補 OP 離線分派需求</span>
   </div>
-  <div class="version-badge">v3.2（2026-04-22）</div>
+  <div class="version-badge">v3.3（2026-04-22）</div>
 </div>
 
 <!-- ============================================================ -->
@@ -353,12 +353,20 @@
 <div class="section" id="s1">
 <h2>一、報告摘要與三方驗證</h2>
 
-<p>v2 方案（2026-04-09 交付）基於 LRP 原始碼 + 五崧保留清單（115 年度），設計「站碼字母 E / F / G / H / J + base-31 英數序號」作為流水號核心。v2 交付後 2026-04-21 收到貴公司提供的 2026 年度完整《報單號碼規則 Excel》，我們隨即展開<strong>三方交叉驗證</strong>（規則 Excel × LRP 原始碼 × DB 10 年實測 2.7 M 筆），發現 v2 的「站碼字母」是<strong>非必要的隔離機制</strong>——OP 實際上以 99.27–100% 的紀律遵守「Tier A 海運 pos10 = 收單關別第 1 字」規則。</p>
-
-<p>本 v3.2 放棄站碼字母設計，改採按23 類別分成 <strong>Tier A（最嚴）/ Tier B（中）/ Tier C（寬）</strong>三層流水號規則，並用 Layer 1 autocomplete 把過去靠 OP 紀律的規則改成系統強制。32 條規則已逐一分類為：LRP 已實作、OP 紀律守到、或 LRP 未 follow，詳見附錄 B。</p>
+<p>本方案歷經三版迭代：v2（2026-04-09 交付）以「站碼字母 E-J + base-31 英數序號」為核心，解「借號」+「站別辨識」；v3 / v3.2（2026-04-21 ~ 22）收到貴公司《報單號碼規則 Excel》後展開<strong>三方交叉驗證</strong>（Excel × LRP 原始碼 × DB 10 年實測 2.7 M 筆），按 23 類別分 Tier A/B/C 三層；v3.3（2026-04-22）補回站別維度 — <strong>把站別加進 counter_key</strong>並在空運 pos10 恢復站別辨識，同時保留「借號結構性消滅」核心（counter_key 含 prefix + declType + station，每桶獨立）。</p>
 
 <div class="success-box">
-  <strong>方案總結（v3.2）：</strong>把《2026 規則 Excel》的 23 個報單類別分為三層 Tier（A 最嚴 / B 中 / C 寬），每層各自決定流水號空間的 charset、pos10 規則與 A72 查重需求。放棄 v2 的站碼字母，改由 Layer 1 autocomplete 系統化強制 OP 過去靠紀律守到的規則。
+  <strong>方案總結（v3.3）：</strong>
+  <ol style="margin:10px 0 4px 22px; font-size:14px;">
+    <li><strong>每類別每 prefix 每站獨立 counter</strong> → 借號結構性消滅（承自 v3）</li>
+    <li><strong>Tier A/B/C 三層流水號規則</strong> → 符合 Excel 23 類完整覆蓋（承自 v3.2）</li>
+    <li><strong>空運恢復站別辨識</strong>：Tier A 用首位數字區段、Tier B/C 用站碼字母 E/F/G/H/J（v3.3 新）</li>
+    <li><strong>海運補 entity + 列印尾碼</strong>：因 Excel 規則鎖 pos10 字母，改靠 <code>createdByStation</code> 欄位 + 檔名 <code>-E/F/G/H/J</code> 尾碼（v3.3 新）</li>
+  </ol>
+</div>
+
+<div class="highlight-box">
+  <strong>為什麼要補回站別維度</strong>（v3.2 → v3.3）：IT（Inchen）補充，各區 OP 從海關拿到報單資料後，<strong>不進系統</strong>看流水號開頭就要能快速區分哪一站、完成分派寄送。v3.2 只靠系統 badge 顯示站別，離線場景無解 —— v3.3 把站別寫回號碼本身（空運）+ 列印尾碼（海運）。
 </div>
 
 <div class="stat-grid">
@@ -546,27 +554,27 @@
 <h3>3.1 Tier 分級</h3>
 
 <div class="tier-card tier-a">
-  <h4><span class="badge">Tier A</span> 最嚴 — 空運 NUMERIC 5 碼 / 海運 pos10 鎖收單首字 + 4 英數 + A72 查重</h4>
+  <h4><span class="badge">Tier A</span> 最嚴 — 空運純數字 5 碼（首位按站）/ 海運 pos10 鎖收單首字 + 4 英數 + A72 查重</h4>
   <p><strong>適用類別</strong>：<code>F2 / F3 / D2 / D7</code>（本體）+ <code>B6 / D8</code>（自由港版）</p>
-  <p><strong>空運規則</strong>：pos10-14 = 純數字 5 碼（charset = NUMERIC，容量 99,999）</p>
-  <p><strong>海運規則</strong>：pos10 = 收單關別第 1 字（例如 CW → <code>C</code>） + pos11-14 BASE31 4 碼</p>
+  <p><strong>空運規則</strong>：pos10-14 = 純數字 5 碼，首位 = <strong>站別區段</strong>（0-1 新竹 / 2-3 桃園 / 4-5 台中 / 6-7 高雄 / 8-9 台南），每站 20,000 容量</p>
+  <p><strong>海運規則</strong>：pos10 = 收單關別第 1 字（例如 CW → <code>C</code>） + pos11-14 BASE31 4 碼。站別靠 entity 欄位 + 列印尾碼補（Excel 鎖 pos10 為字母）</p>
   <p><strong>A72</strong>：跨類別查重 <code>SUBSTR(DECL_NO, 5, 10)</code>，僅限自由港子集</p>
   <p><strong>DB 吻合率</strong>：F3 99.87% / F2 99.59% / D2 99.27% / D7 99.46% / B6 FTZ 99.32% / D8 FTZ <strong>100%</strong>（10 年 OP 紀律達標）</p>
 </div>
 
 <div class="tier-card tier-b">
-  <h4><span class="badge">Tier B</span> 中 — 海運 pos10 任意英字（實務偏 E/I） + 4 英數</h4>
+  <h4><span class="badge">Tier B</span> 中 — 空運 pos10 = 站碼字母 E/F/G/H/J / 海運 pos10 任意英字（實務偏 E/I） + 4 英數</h4>
   <p><strong>適用類別</strong>：<code>G1 / G3 / G5 / G7</code>（一般）/ <code>B6 / B8 / B9 / D8</code>（一般）/ <code>F1 / F5</code>（一般）/ <code>L1</code>（物流中心）/ <code>D5</code>（一般）</p>
-  <p><strong>空運規則</strong>：pos10-14 = 5 英數字（charset = BASE31，排除 I / L / O；DB 實測 100% 純數字）</p>
-  <p><strong>海運規則</strong>：pos10 預設 E（出口）/ I（進口），OP 可改其他英字</p>
+  <p><strong>空運規則</strong>：pos10 = <strong>站碼字母</strong>（E 新竹 / F 桃園 / G 台中 / H 高雄 / J 台南） + pos11-14 BASE31 4 碼，每站每 prefix 923,521 容量</p>
+  <p><strong>海運規則</strong>：pos10 預設 E（出口）/ I（進口），OP 可改其他英字。站別靠 entity + 列印尾碼</p>
   <p><strong>DB 吻合率</strong>：G1 pos10='I' 72.5% / G5 'E' 71.4% / G3 'E' 88.5% / L1 'I' 85.7%（主流吻合）</p>
 </div>
 
 <div class="tier-card tier-c">
-  <h4><span class="badge">Tier C</span> 寬 — 海運 pos10 不鎖（預設 pos1 可改） + 4 英數</h4>
+  <h4><span class="badge">Tier C</span> 寬 — 空運 pos10 = 站碼字母 E/F/G/H/J / 海運 pos10 不鎖（預設 pos1 可改） + 4 英數</h4>
   <p><strong>適用類別</strong>：<code>T1</code>（轉儲）/ <code>F4</code>（自由港區間）/ <code>D1</code>（課稅區/保稅倉）/ <code>D5 / B8 / B9</code>（自由港版）/ <code>F5</code>（船舶供油）</p>
-  <p><strong>空運規則</strong>：pos10-14 = 5 英數字（charset = BASE31）</p>
-  <p><strong>海運規則</strong>：pos10 預設 pos1（收單關別第 1 字）、OP 可改任意英數字</p>
+  <p><strong>空運規則</strong>：同 Tier B — pos10 = 站碼字母 + pos11-14 BASE31 4 碼</p>
+  <p><strong>海運規則</strong>：pos10 預設 pos1（收單關別第 1 字）、OP 可改任意英數字。站別靠 entity + 列印尾碼</p>
   <p><strong>DB 吻合率</strong>：D1 pos1=pos10 84% / F4 60% / T1 偏純數字 79.7%（實務反而偏嚴）</p>
 </div>
 
@@ -604,31 +612,66 @@
   </tbody>
 </table>
 
-<h3>3.3 <code>derivePos10()</code> 核心邏輯</h3>
+<h3>3.3 站碼字母映射（空運 Tier B/C）</h3>
+
+<table>
+  <thead>
+    <tr><th>站</th><th>站碼字母</th><th>現行站號 (LRP)</th><th>備註</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>新竹</strong></td><td class="center"><code>E</code></td><td>AJ100</td><td>v2 原設計</td></tr>
+    <tr><td>桃園</td><td class="center"><code>F</code></td><td>AE100</td><td>v2 原設計</td></tr>
+    <tr><td>台中</td><td class="center"><code>G</code></td><td>AH100</td><td>v2 原設計</td></tr>
+    <tr><td>高雄</td><td class="center"><code>H</code></td><td>AF110</td><td>v2 原設計</td></tr>
+    <tr><td>台南</td><td class="center"><code>J</code></td><td>AF100</td><td>跳 I（全局黑名單）</td></tr>
+  </tbody>
+</table>
+
+<h3>3.4 Tier A 空運數字區段分配</h3>
+
+<table>
+  <thead>
+    <tr><th>站</th><th>區段首位</th><th>counter 範圍</th><th>容量</th><th>DB 實測最高使用率</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>新竹</strong></td><td class="center"><code>0, 1</code></td><td class="center"><code>00000 – 19999</code></td><td class="num">20,000</td><td class="center">~12%（BS+D7+2025 = 2,468）</td></tr>
+    <tr><td>桃園</td><td class="center"><code>2, 3</code></td><td class="center"><code>20000 – 39999</code></td><td class="num">20,000</td><td class="center">—</td></tr>
+    <tr><td>台中</td><td class="center"><code>4, 5</code></td><td class="center"><code>40000 – 59999</code></td><td class="num">20,000</td><td class="center">—</td></tr>
+    <tr><td>高雄</td><td class="center"><code>6, 7</code></td><td class="center"><code>60000 – 79999</code></td><td class="num">20,000</td><td class="center">—</td></tr>
+    <tr><td>台南</td><td class="center"><code>8, 9</code></td><td class="center"><code>80000 – 99999</code></td><td class="num">20,000</td><td class="center">—</td></tr>
+  </tbody>
+</table>
+
+<h3>3.5 <code>derivePos10()</code> 核心邏輯</h3>
 
 <div class="code-block"><span class="keyword">function</span> <span class="func">derivePos10</span>(
   declType: <span class="type">DeclarationType</span>,
   transportMode: <span class="type">TransportMode</span>,
   recv: <span class="type">string</span>,          <span class="comment">// 收單關別 2 碼，如 'CW'</span>
   isFreeTradeZone: <span class="type">boolean</span>,
+  station: <span class="type">StationCode</span>,   <span class="comment">// v3.3 新增 — OP 所屬站</span>
 ): <span class="type">Pos10Strategy</span> {
   <span class="keyword">const</span> tier = <span class="func">getTier</span>(declType, isFreeTradeZone);
 
   <span class="keyword">if</span> (transportMode === <span class="string">'AIR'</span>) {
     <span class="keyword">return</span> tier === <span class="string">'A'</span>
-      ? { charset: <span class="string">'NUMERIC'</span>, length: <span class="type">5</span> }           <span class="comment">// Tier A 空運</span>
-      : { charset: <span class="string">'BASE31'</span>, length: <span class="type">5</span> };           <span class="comment">// Tier B/C 空運</span>
+      ? { charset: <span class="string">'NUMERIC'</span>, length: <span class="type">5</span>, stationOffset: <span class="func">stationSegment</span>(station) }  <span class="comment">// v3.3</span>
+      : { lock: <span class="func">stationLetter</span>(station), charset: <span class="string">'BASE31'</span>, length: <span class="type">4</span> };          <span class="comment">// v3.3 — 首位站碼字母</span>
   }
 
-  <span class="comment">// 海運</span>
+  <span class="comment">// 海運 — 站別無法放 pos10（Excel 鎖）→ 靠 entity + 列印尾碼</span>
   <span class="keyword">switch</span> (tier) {
     <span class="keyword">case</span> <span class="string">'A'</span>: <span class="keyword">return</span> { lock: recv[<span class="type">0</span>], charset: <span class="string">'BASE31'</span>, length: <span class="type">4</span> };
     <span class="keyword">case</span> <span class="string">'B'</span>: <span class="keyword">return</span> { <span class="func">default</span>: isImport(declType) ? <span class="string">'I'</span> : <span class="string">'E'</span>, charset: <span class="string">'BASE31'</span>, length: <span class="type">4</span> };
     <span class="keyword">case</span> <span class="string">'C'</span>: <span class="keyword">return</span> { <span class="func">default</span>: recv[<span class="type">0</span>], charset: <span class="string">'BASE31'</span>, length: <span class="type">4</span>, editable: <span class="keyword">true</span> };
   }
+}
+
+<span class="keyword">function</span> <span class="func">stationSegment</span>(s: <span class="type">StationCode</span>): <span class="type">number</span> {
+  <span class="keyword">return</span> { E: <span class="type">0</span>, F: <span class="type">20000</span>, G: <span class="type">40000</span>, H: <span class="type">60000</span>, J: <span class="type">80000</span> }[s];
 }</div>
 
-<h3>3.4 全局黑名單</h3>
+<h3>3.6 全局黑名單</h3>
 
 <div class="warning-box">
   <strong>pos10-14 禁止字母</strong>（所有 Tier 通用）：<code>I</code> / <code>L</code> / <code>O</code>
@@ -636,8 +679,20 @@
 </div>
 
 <div class="warning-box">
-  <strong>空運 pos10 禁止字母</strong>（全空運額外）：<code>A</code> / <code>B</code> / <code>C</code> / <code>D</code>
-  <br><span style="font-size:13px; color:var(--gray-500);">原因：避開關區代碼保留區。DB 實測洋基 / FedEx 經辦 45 萬筆空運零踩。全空運擋，不用識別快遞關區。</span>
+  <strong>空運 pos11-14 禁止字母</strong>（非站碼位的 pos11-14）：<code>A</code> / <code>B</code> / <code>C</code> / <code>D</code>
+  <br><span style="font-size:13px; color:var(--gray-500);">原因：避開關區代碼保留區。DB 實測洋基 / FedEx 經辦 45 萬筆空運零踩。（pos10 已被站碼字母 E/F/G/H/J 佔用，天然避開）</span>
+</div>
+
+<h3>3.7 海運站別辨識（補償方案）</h3>
+
+<div class="purple-box">
+  <strong>海運 pos10 被 Excel 規則鎖死字母</strong>（Tier A 收單首字 / Tier B E/I / Tier C 預設 pos1），無空間放站別。補償三件組：
+  <ol style="margin:10px 0 4px 22px; font-size:14px;">
+    <li><strong>Entity 欄位</strong>：<code>CustomsDeclaration.createdByStation: StationCode</code>（打單 OP 所屬站自動帶入）</li>
+    <li><strong>列印檔名尾碼</strong>：<code>{declNo}-{station}.{ext}</code>，例：<code>CWD2151420579-H.pdf</code>（高雄 = H）</li>
+    <li><strong>報單右上角 badge</strong>：視覺辨識 <code>🏢 新竹 / 🏢 桃園 / …</code></li>
+  </ol>
+  <strong>B1 / B2 / G2</strong> 站別靠客戶主檔綁定（保稅廠客戶 = 固定站，聯電永遠新竹、台塑永遠高雄等），不需流水號帶。
 </div>
 </div>
 
@@ -947,51 +1002,75 @@
 <div class="section" id="s7">
 <h2>七、容量分析與告警</h2>
 
-<h3>7.1 各 Tier 容量上限</h3>
+<h3>7.1 各 Tier 容量上限（v3.3 按站分桶）</h3>
 
 <table>
   <thead>
-    <tr><th>Tier</th><th>運輸</th><th>Charset</th><th>長度</th><th>每 prefix 年容量</th><th>備註</th></tr>
+    <tr><th>Tier</th><th>運輸</th><th>Charset</th><th>站別標記位置</th><th>每站每 prefix 年容量</th><th>備註</th></tr>
   </thead>
   <tbody>
     <tr>
       <td><span class="tag tag-red">A</span></td>
       <td>空運</td>
       <td>NUMERIC</td>
-      <td>5 碼</td>
-      <td class="num">99,999</td>
-      <td>規則 Excel 明訂純數字</td>
+      <td>pos10 首位數字（0-1 / 2-3 / 4-5 / 6-7 / 8-9）</td>
+      <td class="num">20,000</td>
+      <td>每站區段 2 萬，5 站共 100,000</td>
     </tr>
     <tr>
       <td><span class="tag tag-red">A</span></td>
       <td>海運</td>
-      <td>固定 pos10 + BASE31</td>
-      <td>1 + 4 碼</td>
+      <td>pos10 = 收單首字 / pos11-14 BASE31</td>
+      <td>無（entity + 列印尾碼補）</td>
+      <td class="num">923,521</td>
+      <td>pos11-14 BASE31 4 碼</td>
+    </tr>
+    <tr>
+      <td><span class="tag tag-orange">B</span></td>
+      <td>空運</td>
+      <td>pos10 = 站碼字母 / pos11-14 BASE31</td>
+      <td>pos10 字母（E/F/G/H/J）</td>
       <td class="num">923,521</td>
       <td>pos11-14 BASE31 4 碼 = 31⁴</td>
     </tr>
     <tr>
       <td><span class="tag tag-orange">B</span></td>
-      <td>空 / 海</td>
-      <td>BASE31</td>
-      <td>5 碼</td>
-      <td class="num">28,629,151</td>
-      <td>31⁵，遠超所需</td>
+      <td>海運</td>
+      <td>pos10 字母 + pos11-14 BASE31</td>
+      <td>無（entity + 列印尾碼補）</td>
+      <td class="num">923,521</td>
+      <td>同上</td>
     </tr>
     <tr>
       <td><span class="tag tag-green">C</span></td>
-      <td>空 / 海</td>
-      <td>BASE31</td>
-      <td>5 碼</td>
-      <td class="num">28,629,151</td>
-      <td>同上</td>
+      <td>空運</td>
+      <td>pos10 = 站碼字母 / pos11-14 BASE31</td>
+      <td>pos10 字母</td>
+      <td class="num">923,521</td>
+      <td>同 Tier B 空運</td>
+    </tr>
+    <tr>
+      <td><span class="tag tag-green">C</span></td>
+      <td>海運</td>
+      <td>pos10 不鎖 + pos11-14 BASE31</td>
+      <td>無（entity + 列印尾碼補）</td>
+      <td class="num">923,521</td>
+      <td>可編輯</td>
+    </tr>
+    <tr>
+      <td><span class="tag tag-purple">4+4</span></td>
+      <td>B1/B2/G2</td>
+      <td>pos7-10 監管編號 + pos11-14 BASE31 4 碼</td>
+      <td>客戶主檔綁定（保稅廠 = 固定站）</td>
+      <td class="num">923,521</td>
+      <td>4+4 切法</td>
     </tr>
   </tbody>
 </table>
 
 <h3>7.2 Task B DB 實測（2026-04-22）：Tier A 空運實際使用率</h3>
 
-<p>Tier A 空運是所有 Tier 中容量最緊（99,999）的。抓 DB 2021-2025 五年資料，按 <code>(收單關別, 類別, 年份)</code> 分組看實際使用量：</p>
+<p>Tier A 空運是所有 Tier 中容量最緊（每站 20,000）的。抓 DB 2021-2025 五年資料，按 <code>(收單關別, 類別, 年份)</code> 分組看實際使用量：</p>
 
 <table>
   <thead>
@@ -1039,112 +1118,176 @@
 
 <div class="bar-chart">
   <div class="bar-row">
-    <div class="bar-label">Tier A 空運</div>
+    <div class="bar-label">Tier A 空運 / 站</div>
     <div class="bar-track">
-      <div class="bar-fill" style="width:2.5%; background:var(--danger);">2.5%</div>
+      <div class="bar-fill" style="width:12%; background:var(--danger);">12%</div>
     </div>
-    <div class="bar-info">年度最高 2,468 / 99,999</div>
+    <div class="bar-info">年度最高 2,468 / 20,000（高雄 BS+D7）</div>
   </div>
   <div class="bar-row">
     <div class="bar-label">Tier A 海運</div>
     <div class="bar-track">
-      <div class="bar-fill" style="width:1%; background:var(--warning);">&lt;1%</div>
+      <div class="bar-fill" style="width:2%; background:var(--warning);">~2%</div>
     </div>
     <div class="bar-info">pos11-14 BASE31 = 923,521 容量</div>
   </div>
   <div class="bar-row">
-    <div class="bar-label">Tier B / C</div>
+    <div class="bar-label">Tier B/C 空運 / 站</div>
     <div class="bar-track">
       <div class="bar-fill" style="width:0.1%; background:var(--success);">≪1%</div>
     </div>
-    <div class="bar-info">BASE31 5 碼 = 28.6M 容量</div>
+    <div class="bar-info">pos11-14 BASE31 4 碼 = 923,521 / 站</div>
   </div>
 </div>
 
-<h3>7.3 告警閾值建議</h3>
+<h3>7.3 告警閾值建議（v3.3）</h3>
 
 <div class="success-box">
-  <strong>Tier A 空運告警（單一 prefix / 年）</strong>：
+  <strong>Tier A 空運告警（單站單 prefix / 年）</strong>：
   <ul style="margin-top:8px;">
-    <li><span class="tag tag-orange">一級告警 50,000 筆（50% 容量）</span> — 發 email 通知運營主管</li>
-    <li><span class="tag tag-red">二級告警 80,000 筆（80% 容量）</span> — 通知 IT 並準備應變</li>
-    <li><span class="tag tag-red">封鎖 99,000 筆（99% 容量）</span> — 自動擋號，強制 OP 改用其他 prefix</li>
+    <li><span class="tag tag-orange">一級告警 10,000 筆（50% 容量）</span> — 發 email 通知運營主管</li>
+    <li><span class="tag tag-red">二級告警 16,000 筆（80% 容量）</span> — 通知 IT 並準備應變（可臨時把空位區段借給爆桶站）</li>
+    <li><span class="tag tag-red">封鎖 19,800 筆（99% 容量）</span> — 自動擋號，強制改用其他站區段</li>
   </ul>
   <p style="margin-top:8px; font-size:13px; color:var(--gray-500);">
-    以歷史最大值 2,468 / 年計算，需要<strong>約 20 倍</strong>業務爆發才會觸發一級告警。考量到五崧可能導入新客戶後業務量跳增，仍建議保留此告警機制。
+    以歷史最大值 2,468 / 年計算（高雄 BS+D7），需要<strong>約 4 倍</strong>業務爆發才會觸發一級告警。若某站真爆，IT 可把旁邊站的未用區段臨時開給它（不影響借號解法 — 跨桶不跨 counter_key）。
   </p>
+</div>
+
+<div class="highlight-box">
+  <strong>為什麼 Tier A 空運從 v3.2 的 99,999 縮到 v3.3 的 20,000</strong>？v3.3 把 5 站切分到同一個 pos10-14 空間 → 單站空間變 1/5。但每站仍獨立 counter，不會有「新竹撞滿、桃園閒置」的不平衡（LRP 舊痛點）。10 年 DB 實測每站單 prefix 最高 2,468，20,000 有 8 倍緩衝。
 </div>
 </div>
 
 <!-- ============================================================ -->
 <div class="section" id="s8">
-<h2>八、新舊方案對比（v2 → v3.2）</h2>
+<h2>八、演進對比（v2 → v3.2 → v3.3）</h2>
 
-<p>v2（2026-04-09）主要設計核心是「站碼字母 E / F / G / H / J + base-31 英數序號」。v3.2 在規則 Excel + DB 三方驗證後發現 v2 的站碼字母是<strong>非必要的隔離機制</strong>，因此改為按類別分層的 Tier 策略。</p>
+<p>本方案歷經三版迭代，每版有明確的觸發事件與設計取捨：</p>
 
-<div class="comparison-grid">
-  <div class="comparison-card old">
-    <h4>❌ v2（2026-04-09）</h4>
-    <p style="font-size:14px; margin:8px 0;">站碼字母做為核心隔離機制</p>
-    <ul style="font-size:13px; margin-top:8px;">
-      <li>海運 pos10 = 站碼字母（E 新竹 / F 桃園...）</li>
-      <li>流水號 charset 全 BASE31</li>
-      <li>counter_key 不含類別</li>
-      <li>保留區海 / 空運都有</li>
-      <li>A72 靠站碼字母天然隔離</li>
-      <li>監管編號（B1/B2/G2）未處理</li>
-    </ul>
-  </div>
-  <div class="comparison-card new">
-    <h4>✅ v3.2（2026-04-22）</h4>
-    <p style="font-size:14px; margin:8px 0;">按類別分 Tier A/B/C 動態策略</p>
-    <ul style="font-size:13px; margin-top:8px;">
-      <li>海運 pos10 按 Tier 決定（A 鎖收單首字 / B 預設 E/I / C 預設 pos1 可改）</li>
-      <li>Tier A 空運 NUMERIC 5 碼 / 其他 BASE31</li>
-      <li>counter_key 含 declType（避免跨類別衝突）</li>
-      <li>保留區<strong>僅空運</strong>（海運靠 Service 層查重）</li>
-      <li>A72 用 <code>checkCollision()</code> 明確跨類別查重</li>
-      <li><code>buildDeclNoPos7to10()</code> 處理 B1/B2 後補 vs G2 前補</li>
-    </ul>
-  </div>
-</div>
-
-<h3>8.1 為什麼放棄站碼字母</h3>
-
-<p>v2 站碼字母的核心訴求是「OP 需從流水號辨識站別」。但三方驗證發現：</p>
-
-<table>
+<table style="font-size:13px;">
   <thead>
-    <tr><th>理由</th><th>證據</th></tr>
+    <tr><th>版本</th><th>日期</th><th>觸發</th><th>核心特徵</th><th>主要問題</th></tr>
   </thead>
   <tbody>
     <tr>
-      <td>DB 實測 OP 已經用「pos10 = 收單關別第 1 字」做站別辨識</td>
-      <td>F3 99.87% / F2 99.59% / D2 99.27% / D7 99.46%（Tier A 海運各類別）</td>
+      <td><span class="tag tag-red">v2</span></td>
+      <td>2026-04-09</td>
+      <td>LRP 原始碼 + 保留清單分析</td>
+      <td>站碼字母 E/F/G/H/J + BASE31 4 碼 + 單 counter 共用類別</td>
+      <td>站碼字母與 Excel Tier A 純數字規則衝突；未處理 B1/B2/G2 監管編號</td>
     </tr>
     <tr>
-      <td>站碼字母跟收單關別第 1 字<strong>在資訊上重複</strong>（OP 看 pos1 = 關別 = 站別）</td>
-      <td>站碼只是 A/B/C/D（關別）→ E/F/G/H/J（站別）的硬 map</td>
+      <td><span class="tag tag-orange">v3.2</span></td>
+      <td>2026-04-22</td>
+      <td>貴公司《2026 規則 Excel》進入三方驗證</td>
+      <td>Tier A/B/C 動態 + counter_key 加 declType + 附錄 A/B</td>
+      <td>站別辨識只靠 UI badge，離線分派無解</td>
     </tr>
     <tr>
-      <td>v2 要額外維護一張「站碼字母 → 辦公室」對照表</td>
-      <td>AJ100=E / AE100=F / AH100=G / AF110=H / AF100=J</td>
-    </tr>
-    <tr>
-      <td>v2 設計會佔用 pos10 一個字元，壓縮 Tier B/C 容量</td>
-      <td>BASE31 4 碼（含站碼）= 92 萬 vs BASE31 5 碼 = 2,863 萬</td>
+      <td><span class="tag tag-green">v3.3</span></td>
+      <td>2026-04-22</td>
+      <td>IT 補充 OP 離線分派痛點</td>
+      <td>counter_key 加 station 維度 + 空運恢復站別（Tier A 數字區段 / Tier B/C 字母）+ 海運 entity 補</td>
+      <td>—</td>
     </tr>
   </tbody>
 </table>
 
-<h3>8.2 v3.2 的額外收穫</h3>
+<div class="comparison-grid">
+  <div class="comparison-card old">
+    <h4>❌ v3.2 的盲點</h4>
+    <ul style="font-size:13px; margin-top:8px;">
+      <li>OP 拿到海關回傳紙本 / EDI 匯出檔 → 看號碼認不出站別</li>
+      <li>必須進系統查 <code>createdByStation</code> badge 才能分派</li>
+      <li>離線場景無解</li>
+    </ul>
+  </div>
+  <div class="comparison-card new">
+    <h4>✅ v3.3 補救</h4>
+    <ul style="font-size:13px; margin-top:8px;">
+      <li>空運號碼本身內建站別（Tier A 數字首位 / Tier B/C 字母首位）</li>
+      <li>海運列印檔名尾碼 <code>-E/F/G/H/J</code> 也能離線辨識</li>
+      <li>counter_key 加 station 維度 → 每站獨立桶、不會借號</li>
+    </ul>
+  </div>
+</div>
 
-<ul>
-  <li><strong>覆蓋 23 類別全規則</strong>：v2 只做基礎取號，v3.2 含附錄 A 完整對照 + pos3-4 四種定義 + A72 跨類別查重</li>
-  <li><strong>B1 / B2 / G2 監管編號自動化</strong>：v2 未處理，v3.2 透過 <code>CustomerBondedBranch</code> 自動帶入 + declType 分歧補字</li>
-  <li><strong>OP 紀律規則系統化</strong>：I/L/O 黑名單、快遞 A/B/C/D 黑名單、Tier A 海運 pos10=收單首字，全部由 Layer 1 autocomplete 強制</li>
-  <li><strong>容量告警精細化</strong>：Task B 實測數據 2.5% 使用率，告警閾值從 v2 的「容量足」改為明確的 50 K / 80 K / 99 K 三級</li>
-</ul>
+<h3>8.1 v3.2 → v3.3 關鍵差異</h3>
+
+<table>
+  <thead>
+    <tr><th>項目</th><th>v3.2</th><th>v3.3</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>counter_key</td>
+      <td><code>{recv}{declType}{yr}{pos7-9}</code>（10 碼）</td>
+      <td><code>{recv}{declType}{yr}{pos7-9}{station}</code>（11 碼）</td>
+    </tr>
+    <tr>
+      <td>Tier A 空運 pos10-14</td>
+      <td>純數字 5 碼（單 counter 0-99999）</td>
+      <td>純數字 5 碼，首位 = 站別區段（0-1/2-3/4-5/6-7/8-9）</td>
+    </tr>
+    <tr>
+      <td>Tier B/C 空運 pos10</td>
+      <td>BASE31 任意</td>
+      <td>站碼字母 E/F/G/H/J（v2 原設計）</td>
+    </tr>
+    <tr>
+      <td>Tier A 空運容量</td>
+      <td>99,999 / prefix</td>
+      <td>20,000 / 站 / prefix</td>
+    </tr>
+    <tr>
+      <td>Tier B/C 空運容量</td>
+      <td>28.6M / prefix</td>
+      <td>923,521 / 站 / prefix</td>
+    </tr>
+    <tr>
+      <td>海運站別辨識</td>
+      <td>UI badge 僅</td>
+      <td>UI badge + entity <code>createdByStation</code> + 列印檔名 <code>-{station}</code> 尾碼</td>
+    </tr>
+    <tr>
+      <td>B1/B2/G2 站別</td>
+      <td>UI badge 僅</td>
+      <td>客戶主檔綁定（保稅廠 = 固定站）</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>8.2 借號問題為什麼仍然解</h3>
+
+<p>v3.3 雖然把站別加進 counter_key 看似讓桶變細，但關鍵差異跟 LRP 舊做法不同：</p>
+
+<table>
+  <thead>
+    <tr><th>設計</th><th>LRP 現況</th><th>v3.3</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>counter 切分維度</td>
+      <td>只切站，不切類別（所有類別擠一個池）</td>
+      <td>切 {recv, declType, yr, pos7-9, station} 五維</td>
+    </tr>
+    <tr>
+      <td>新竹 CW+014 年度量</td>
+      <td>~72,000（所有類別合計）</td>
+      <td>按類別拆，Tier A 最高 ~2,468，Tier B/C 各幾百至幾千</td>
+    </tr>
+    <tr>
+      <td>單桶容量 vs 使用</td>
+      <td>58,000 容量 < 72,000 量 → <strong>必借</strong></td>
+      <td>20,000 容量 >> 2,468 量 → <strong>8 倍緩衝</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="success-box">
+  <strong>核心洞察</strong>：LRP 借號的根因是「所有類別擠同一池」+「新竹量遠大於其他站」，v3.3 的切分維度更細 → 每桶使用率自然稀釋 → 借號結構性消滅。
+</div>
 </div>
 
 <!-- ============================================================ -->
@@ -1400,7 +1543,7 @@
 <div class="section" id="s11">
 <h2>十一、待確認事項</h2>
 
-<p>本 v3.2 內部優化已做完，剩餘 10 項需規則制訂方確認。完整題目集見《<strong>取號規則待確認題目集-2026-04-22.xlsx</strong>》，關鍵三題摘要如下：</p>
+<p>本 v3.3 內部優化已做完，剩餘事項需規則制訂方 / 管理層確認。完整題目集見《<strong>取號規則待確認題目集-2026-04-22.xlsx</strong>》，關鍵摘要：</p>
 
 <table>
   <thead>
@@ -1421,15 +1564,27 @@
     </tr>
     <tr>
       <td>Q11b</td>
-      <td><strong>Tier A 空運容量告警閾值</strong>：建議 50 K / 80 K / 99 K 三級，可以嗎？LRP 現在快撞上限怎麼處理？</td>
+      <td><strong>Tier A 空運容量告警閾值（v3.3）</strong>：建議 10K / 16K / 19.8K 三級（每站單 prefix）可以嗎？LRP 現在撞單站容量如何處理？</td>
       <td>規則制訂方 / 報關主管</td>
       <td><span class="tag tag-blue">低</span>：僅影響監控告警邏輯</td>
+    </tr>
+    <tr>
+      <td><strong>Q16（v3.3 新增）</strong></td>
+      <td><strong>站碼字母分配確認</strong>：v3.3 空運 Tier B/C pos10 = 站碼字母（E 新竹 / F 桃園 / G 台中 / H 高雄 / J 台南）；Tier A 首位數字區段（0-1 新竹 / 2-3 桃園 / 4-5 台中 / 6-7 高雄 / 8-9 台南）。此分配規則可接受嗎？</td>
+      <td>IT / 管理層</td>
+      <td><span class="tag tag-red">高</span>：影響號碼格式、OP 分派流程</td>
+    </tr>
+    <tr>
+      <td><strong>Q17（v3.3 新增）</strong></td>
+      <td><strong>海運列印尾碼規則</strong>：海運報單 Excel 鎖 pos10 字母無法內建站別。建議列印檔名尾碼 <code>{declNo}-{station}.{ext}</code>（例 <code>CWD2151420579-H.pdf</code>）+ 報單右上角站別 badge，離線分派用。可接受嗎？</td>
+      <td>IT / 報關主管</td>
+      <td><span class="tag tag-orange">中</span>：影響 EDI / 列印模組</td>
     </tr>
   </tbody>
 </table>
 
 <div class="highlight-box">
-  <strong>其他 7 題</strong>：Q7 (G7 海運郵包)、Q8 (T1 海運郵包)、Q10 (快遞黑名單方案確認)、Q12 (S vs R 園區字母)、Q14 (保留號碼維護流程)、Q15 (「打空白報單佔號」轉換 UI)。詳見獨立 Excel 題目集。
+  <strong>其他題目</strong>：Q7 (G7 海運郵包)、Q8 (T1 海運郵包)、Q10 (快遞黑名單方案確認)、Q12 (S vs R 園區字母)、Q14 (保留號碼維護流程)、Q15 (「打空白報單佔號」轉換 UI)。詳見獨立 Excel 題目集。
 </div>
 </div>
 
@@ -1818,19 +1973,21 @@
 
 <div class="section">
   <div class="footnote">
-    <p><strong>版本</strong>：v3.2（2026-04-22）— 取代 v2（2026-04-09 站碼字母方案）</p>
+    <p><strong>版本</strong>：v3.3（2026-04-22）— 承接 v3.2 補 OP 離線分派需求（站別維度進 counter_key + 空運 pos10 恢復站別）</p>
+    <p><strong>版本歷史</strong>：v2（2026-04-09 站碼字母 E-J）→ v3（2026-04-21 Tier 動態）→ v3.2（2026-04-22 內部補驗）→ v3.3（2026-04-22 站別維度補回）</p>
     <p><strong>依據</strong>：
       《報單號碼_規則_2026.xlsx》、
       LRP 原始碼（<code>Auto_GetDeclNo</code> / <code>Get_DeclLenMode</code> / <code>lcGet_4</code> / <code>PUB_FUNC1.PAS L1274</code>）、
       DB 實測（<code>LRP.scusdec</code> 2021-2025 共 2.7 M 筆）、
       財政部關務署 A72 公告（114.6.9 修正）、
-      Stanley 2026-04-08 保留清單回覆、
-      03_報單號碼_保留清單_115年度.xls。</p>
+      IT 2026-04-08 保留清單回覆、
+      03_報單號碼_保留清單_115年度.xls、
+      IT 2026-04-22 OP 離線分派需求補充。</p>
     <p><strong>相關文件</strong>：
-      spec <code>2026-04-08-decl-no-service.md</code>（v3.2）、
+      spec <code>2026-04-08-decl-no-service.md</code>（v3.3）、
       plan <code>2026-04-21-decl-no-validation.md</code>（§7-10 DB 驗證）、
       plan <code>2026-04-21-customer-department-entity.md</code>（CustomerBondedBranch）、
-      題目集 <code>2026-04-22-yemeiru-qa-sheet.md</code>（待確認 10 題）。</p>
+      題目集 <code>2026-04-22-yemeiru-qa-sheet.md</code>（待確認題目 含 v3.3 新增 Q16/Q17）。</p>
   </div>
 </div>
 
