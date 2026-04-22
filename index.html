@@ -353,12 +353,12 @@
 <div class="section" id="s1">
 <h2>一、報告摘要與三方驗證</h2>
 
-<p>v2 方案（2026-04-09 交付）基於 LRP 原始碼 + 五崧保留清單（115 年度），設計「站碼字母 E / F / G / H / J + base-31 英數序號」作為流水號核心。v2 交付後葉美如於 2026-04-21 提供 2026 年度完整《報單號碼規則 Excel》，我們隨即展開<strong>三方交叉驗證</strong>（葉美如 Excel × LRP 原始碼 × DB 10 年實測 2.7 M 筆），發現 v2 的「站碼字母」是<strong>非必要的隔離機制</strong>——OP 實際上以 99.27–100% 的紀律遵守「Tier A 海運 pos10 = 收單關別第 1 字」規則。</p>
+<p>v2 方案（2026-04-09 交付）基於 LRP 原始碼 + 五崧保留清單（115 年度），設計「站碼字母 E / F / G / H / J + base-31 英數序號」作為流水號核心。v2 交付後 2026-04-21 收到貴公司提供的 2026 年度完整《報單號碼規則 Excel》，我們隨即展開<strong>三方交叉驗證</strong>（規則 Excel × LRP 原始碼 × DB 10 年實測 2.7 M 筆），發現 v2 的「站碼字母」是<strong>非必要的隔離機制</strong>——OP 實際上以 99.27–100% 的紀律遵守「Tier A 海運 pos10 = 收單關別第 1 字」規則。</p>
 
-<p>本 v3.2 放棄站碼字母設計，改採按葉美如 23 類別分成 <strong>Tier A（最嚴）/ Tier B（中）/ Tier C（寬）</strong>三層流水號規則，並用 Layer 1 autocomplete 把過去靠 OP 紀律的規則改成系統強制。32 條規則已逐一分類為：LRP 已實作、OP 紀律守到、或 LRP 未 follow，詳見附錄 B。</p>
+<p>本 v3.2 放棄站碼字母設計，改採按23 類別分成 <strong>Tier A（最嚴）/ Tier B（中）/ Tier C（寬）</strong>三層流水號規則，並用 Layer 1 autocomplete 把過去靠 OP 紀律的規則改成系統強制。32 條規則已逐一分類為：LRP 已實作、OP 紀律守到、或 LRP 未 follow，詳見附錄 B。</p>
 
 <div class="success-box">
-  <strong>方案總結（v3.2）：</strong>把葉美如 Excel 23 個報單類別分為三層 Tier（A 最嚴 / B 中 / C 寬），每層各自決定流水號空間的 charset、pos10 規則與 A72 查重需求。放棄 v2 的站碼字母，改由 Layer 1 autocomplete 系統化強制 OP 過去靠紀律守到的規則。
+  <strong>方案總結（v3.2）：</strong>把《2026 規則 Excel》的 23 個報單類別分為三層 Tier（A 最嚴 / B 中 / C 寬），每層各自決定流水號空間的 charset、pos10 規則與 A72 查重需求。放棄 v2 的站碼字母，改由 Layer 1 autocomplete 系統化強制 OP 過去靠紀律守到的規則。
 </div>
 
 <div class="stat-grid">
@@ -388,7 +388,7 @@
   <tbody>
     <tr>
       <td><strong>Excel 規則</strong></td>
-      <td>葉美如《報單號碼_規則_2026.xlsx》</td>
+      <td>《報單號碼_規則_2026.xlsx》</td>
       <td>海關法規層 + 五崧歷年案例</td>
       <td>「應該怎麼做」的合規基準</td>
     </tr>
@@ -480,19 +480,19 @@
     <tr>
       <td>4</td>
       <td><strong>Tier A 空運 5 位純數字序號</strong></td>
-      <td>葉美如 Excel 2026</td>
+      <td>《2026 報單號碼規則 Excel》</td>
       <td>F2 / F3 / D2 / D7 + 自由港版 B6 / D8 空運採 NUMERIC charset</td>
     </tr>
     <tr>
       <td>5</td>
       <td><strong>B1 / B2 / G2 監管編號特殊 4+4 切法</strong></td>
-      <td>葉美如 Excel 2026</td>
+      <td>《2026 報單號碼規則 Excel》</td>
       <td>pos7-10 從 <code>CustomerBondedBranch</code> 自動帶入（詳見第五章）</td>
     </tr>
     <tr>
       <td>6</td>
       <td><strong>pos3-4 的四種定義</strong>（出口關別/轉自關別/轉至關別/鎖類別）</td>
-      <td>葉美如 Excel 2026</td>
+      <td>《2026 報單號碼規則 Excel》</td>
       <td>Layer 1 autocomplete 按類別連動 readonly</td>
     </tr>
     <tr>
@@ -504,7 +504,7 @@
     <tr>
       <td>8</td>
       <td>自由港區特殊切法（鎖自身類別）</td>
-      <td>葉美如 Excel 2026</td>
+      <td>《2026 報單號碼規則 Excel》</td>
       <td>FTZ checkbox 連動 D5 / B8 / B9 / B6 / D8 pos3-4 readonly</td>
     </tr>
     <tr>
@@ -541,7 +541,7 @@
 <div class="section" id="s3">
 <h2>三、三 Tier 動態流水號規則</h2>
 
-<p>葉美如 Excel 2026 規則明訂流水號（pos10-14）依報單類別分三層嚴格度。新系統按 <code>declarationType</code> 動態決定所屬 Tier，並配合 <code>transportMode</code>（海 / 空）決定 charset 與 pos10 策略。</p>
+<p>《2026 報單號碼規則 Excel》明訂流水號（pos10-14）依報單類別分三層嚴格度。新系統按 <code>declarationType</code> 動態決定所屬 Tier，並配合 <code>transportMode</code>（海 / 空）決定 charset 與 pos10 策略。</p>
 
 <h3>3.1 Tier 分級</h3>
 
@@ -960,7 +960,7 @@
       <td>NUMERIC</td>
       <td>5 碼</td>
       <td class="num">99,999</td>
-      <td>葉美如 Excel 明訂純數字</td>
+      <td>規則 Excel 明訂純數字</td>
     </tr>
     <tr>
       <td><span class="tag tag-red">A</span></td>
@@ -1080,7 +1080,7 @@
 <div class="section" id="s8">
 <h2>八、新舊方案對比（v2 → v3.2）</h2>
 
-<p>v2（2026-04-09）主要設計核心是「站碼字母 E / F / G / H / J + base-31 英數序號」。v3.2 在葉美如 Excel + DB 三方驗證後發現 v2 的站碼字母是<strong>非必要的隔離機制</strong>，因此改為按類別分層的 Tier 策略。</p>
+<p>v2（2026-04-09）主要設計核心是「站碼字母 E / F / G / H / J + base-31 英數序號」。v3.2 在規則 Excel + DB 三方驗證後發現 v2 的站碼字母是<strong>非必要的隔離機制</strong>，因此改為按類別分層的 Tier 策略。</p>
 
 <div class="comparison-grid">
   <div class="comparison-card old">
@@ -1400,7 +1400,7 @@
 <div class="section" id="s11">
 <h2>十一、待確認事項</h2>
 
-<p>本 v3.2 內部優化已做完，剩餘 10 項需葉美如確認。完整題目集見《<strong>取號規則待確認題目集-2026-04-22.xlsx</strong>》，關鍵三題摘要如下：</p>
+<p>本 v3.2 內部優化已做完，剩餘 10 項需規則制訂方確認。完整題目集見《<strong>取號規則待確認題目集-2026-04-22.xlsx</strong>》，關鍵三題摘要如下：</p>
 
 <table>
   <thead>
@@ -1410,19 +1410,19 @@
     <tr>
       <td>Q6</td>
       <td><strong>海轉空 flag 確認</strong>：<code>scusdec.tran_eava='Y'</code> 是否為海轉空標記？新系統欄位擬命名 <code>isSeaToAirTransfer</code> 是否可接受？</td>
-      <td>葉美如</td>
+      <td>規則制訂方</td>
       <td><span class="tag tag-orange">中</span>：影響 CustomsDeclaration 新增欄位命名</td>
     </tr>
     <tr>
       <td>Q1 / Q2</td>
       <td><strong>業者身份字母 L / D 定義</strong>：確認 L = 物流中心 / D = 港區事業？新系統放 <code>CustomerBondedIndustryType</code> enum 可以嗎？</td>
-      <td>葉美如</td>
+      <td>規則制訂方</td>
       <td><span class="tag tag-orange">中</span>：影響 CustomerDepartment entity 設計</td>
     </tr>
     <tr>
       <td>Q11b</td>
       <td><strong>Tier A 空運容量告警閾值</strong>：建議 50 K / 80 K / 99 K 三級，可以嗎？LRP 現在快撞上限怎麼處理？</td>
-      <td>葉美如 / 報關主管</td>
+      <td>規則制訂方 / 報關主管</td>
       <td><span class="tag tag-blue">低</span>：僅影響監控告警邏輯</td>
     </tr>
   </tbody>
@@ -1438,7 +1438,7 @@
 <div class="section" id="sA">
 <h2>附錄 A｜23 類別規則完整對照表</h2>
 
-<p style="font-size:13px; color:var(--gray-500);">開發查找用。來源：葉美如 Excel 2026 + LRP Auto_GetDeclNo 逆向 + DB 三方驗證（2026-04-21 ~ 22）。</p>
+<p style="font-size:13px; color:var(--gray-500);">開發查找用。來源：《2026 報單號碼規則 Excel》 + LRP Auto_GetDeclNo 逆向 + DB 三方驗證（2026-04-21 ~ 22）。</p>
 
 <h3>A.1 出口類別（10 類）</h3>
 
@@ -1670,7 +1670,7 @@
 <h2>附錄 B｜Excel × LRP × DB 三欄對照表</h2>
 
 <p style="font-size:13px; color:var(--gray-500);">
-  用來回答「葉美如 Excel 這條規則，LRP 有沒有做？DB 是怎麼運作的？」32 條規則四分類。
+  用來回答「規則 Excel 這條規則，LRP 有沒有做？DB 是怎麼運作的？」32 條規則四分類。
 </p>
 
 <div class="legend">
@@ -1810,7 +1810,7 @@
 <ol style="margin-left:24px; color:var(--gray-700);">
   <li><strong>「LRP 有做但沒強制」的項目全部改 Layer 1 autocomplete readonly</strong>：pos3-4 四種定義連動、Tier A 海運 pos10=pos1、FTZ checkbox 鎖類別。LRP 靠 OP 10 年紀律達 99%+ 不是設計對是運氣。</li>
   <li><strong>「LRP 有邏輯但註解掉」的項目 const 強制</strong>：I/L/O 黑名單（L1274 被 <code>{}</code> 包掉）、快遞 A/B/C/D 黑名單（全空運擋）。</li>
-  <li><strong>「Excel 寫死但實務極罕」的項目先擱置</strong>：G5 海轉空、G7/T1 郵包（DB 0-1 筆，五崧無業務）。等葉美如回覆 Q6/Q7/Q8 再決定。</li>
+  <li><strong>「Excel 寫死但實務極罕」的項目先擱置</strong>：G5 海轉空、G7/T1 郵包（DB 0-1 筆，五崧無業務）。等貴方回覆 Q6/Q7/Q8 再決定。</li>
   <li><strong>「B1 資料髒」需遷移策略</strong>：90.5% 舊 B1 違反 pos3-4 鎖 B1 規則，新系統強制後 legacy 資料要標 <code>is_legacy=true</code> 或只保歷史查詢。</li>
   <li><strong><code>tpt_mode</code> 欄位不能直接推斷海/空運樣式</strong>：DB 實測 <code>tpt_mode=99</code>（自由港區內交易）混用純數字 / 字母兩種樣式（F3 FTZ 99.87% 字母、B6 FTZ 69.68% 數字）。Layer 1 autocomplete 必須給 OP 明確選擇。</li>
 </ol>
@@ -1820,7 +1820,7 @@
   <div class="footnote">
     <p><strong>版本</strong>：v3.2（2026-04-22）— 取代 v2（2026-04-09 站碼字母方案）</p>
     <p><strong>依據</strong>：
-      葉美如《報單號碼_規則_2026.xlsx》、
+      《報單號碼_規則_2026.xlsx》、
       LRP 原始碼（<code>Auto_GetDeclNo</code> / <code>Get_DeclLenMode</code> / <code>lcGet_4</code> / <code>PUB_FUNC1.PAS L1274</code>）、
       DB 實測（<code>LRP.scusdec</code> 2021-2025 共 2.7 M 筆）、
       財政部關務署 A72 公告（114.6.9 修正）、
