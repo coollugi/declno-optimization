@@ -1258,9 +1258,21 @@
   </tbody>
 </table>
 
-<h3>8.2 借號問題為什麼仍然解</h3>
+<h3>8.2 切這麼細，會不會重蹈 LRP 借號覆轍？</h3>
 
-<p>v3.3 雖然把站別加進 counter_key 看似讓桶變細，但關鍵差異跟 LRP 舊做法不同：</p>
+<p>讀者看到 v3.3 把 counter_key 再加一個 station 維度，直覺會想：「每桶變得更小，新竹量那麼大還夠用嗎？」這裡用實測數字說清楚。</p>
+
+<h4>一個桶 = 什麼？</h4>
+
+<p>v3.3 的一個桶 = 一組獨立遞增的號碼池，由 <code>counter_key = {recv}{declType}{yr}{pos7-9}{station}</code> 五維決定。同一年、同站、同類別、同箱號，才算同一桶。例如：</p>
+
+<ul>
+  <li><strong>桶 A</strong>：新竹站 + 收單 CW + D7 類別 + 2026 + 箱號 014 → 獨立計數</li>
+  <li><strong>桶 B</strong>：桃園站 + 收單 CW + D7 類別 + 2026 + 箱號 014 → 跟桶 A 完全獨立，不共用號碼</li>
+  <li><strong>桶 C</strong>：新竹站 + 收單 CW + <strong>D2 類別</strong> + 2026 + 箱號 014 → 又是另一個獨立桶</li>
+</ul>
+
+<h4>LRP vs v3.3 的桶定義差異</h4>
 
 <table>
   <thead>
@@ -1268,26 +1280,57 @@
   </thead>
   <tbody>
     <tr>
-      <td>counter 切分維度</td>
-      <td>只切站，不切類別（所有類別擠一個池）</td>
-      <td>切 {recv, declType, yr, pos7-9, station} 五維</td>
+      <td>桶由什麼切</td>
+      <td>站 + 年 + 箱號（<strong>所有類別擠同一桶</strong>）</td>
+      <td>站 + 年 + 箱號 + <strong>報單類別</strong> + <strong>收單關別</strong>（五維）</td>
     </tr>
     <tr>
-      <td>新竹 CW+014 年度量</td>
-      <td>~72,000（所有類別合計）</td>
-      <td>按類別拆，Tier A 最高 ~2,468，Tier B/C 各幾百至幾千</td>
+      <td>新竹 CW+014 的「桶」</td>
+      <td>1 個桶（涵蓋全部類別）= 年化 ~72,000 筆</td>
+      <td>拆成 ~6-8 個子桶（每類別獨立）= 最大單桶僅 2,192 筆</td>
     </tr>
     <tr>
-      <td>單桶容量 vs 使用</td>
-      <td>58,000 容量 < 72,000 量 → <strong>必借</strong></td>
-      <td>20,000 容量 >> 2,468 量 → <strong>8 倍緩衝</strong></td>
+      <td>單桶容量</td>
+      <td>58,000（新竹分段）</td>
+      <td>20,000（Tier A 空運）/ 923,521（Tier B/C 空運、各 Tier 海運）</td>
+    </tr>
+    <tr>
+      <td>借號需要嗎</td>
+      <td>❌ 必借（58K 桶 &lt; 72K 使用）</td>
+      <td>✅ 不需（20K 桶 &gt;&gt; 最大 2,468 使用 = <strong>8 倍緩衝</strong>）</td>
     </tr>
   </tbody>
 </table>
 
+<h4>實測：2025 年所有 Tier A 空運桶使用量</h4>
+
+<p>Tier A 空運是所有 Tier 中容量最緊（20,000 / 桶）的。2025 年全五崧 Tier A 空運共 12 個活躍桶：</p>
+
+<table>
+  <thead>
+    <tr><th>#</th><th>收單關別</th><th>報單類別</th><th>箱號</th><th>該桶 2025 使用量</th><th>佔 20K 容量</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td>BS（南部）</td><td>D7</td><td>312</td><td class="num"><strong>2,468</strong></td><td class="num">12.3%</td></tr>
+    <tr><td>2</td><td>CW（新竹）</td><td>B6 FTZ</td><td>014</td><td class="num">2,192</td><td class="num">11.0%</td></tr>
+    <tr><td>3</td><td>CB（桃園）</td><td>D2</td><td>014</td><td class="num">1,864</td><td class="num">9.3%</td></tr>
+    <tr><td>4</td><td>CS（新竹）</td><td>D7</td><td>014</td><td class="num">1,097</td><td class="num">5.5%</td></tr>
+    <tr><td>5</td><td>CB（桃園）</td><td>D7</td><td>014</td><td class="num">1,047</td><td class="num">5.2%</td></tr>
+    <tr><td>6</td><td>BS（南部）</td><td>D2</td><td>312</td><td class="num">436</td><td class="num">2.2%</td></tr>
+    <tr><td>7</td><td>CW（新竹）</td><td>F2</td><td>014</td><td class="num">366</td><td class="num">1.8%</td></tr>
+    <tr><td>8</td><td>DS（台中）</td><td>D7</td><td>194</td><td class="num">130</td><td class="num">0.7%</td></tr>
+    <tr><td>9</td><td>CS（新竹）</td><td>D2</td><td>014</td><td class="num">104</td><td class="num">0.5%</td></tr>
+    <tr><td>10</td><td>DS（台中）</td><td>D2</td><td>194</td><td class="num">13</td><td class="num">0.1%</td></tr>
+    <tr><td>11</td><td>CB（桃園）</td><td>D2</td><td>0C5</td><td class="num">10</td><td class="num">0.1%</td></tr>
+    <tr><td>12</td><td>CW（新竹）</td><td>D8</td><td>014</td><td class="num">9</td><td class="num">&lt;0.1%</td></tr>
+  </tbody>
+</table>
+
 <div class="success-box">
-  <strong>核心洞察</strong>：LRP 借號的根因是「所有類別擠同一池」+「新竹量遠大於其他站」，v3.3 的切分維度更細 → 每桶使用率自然稀釋 → 借號結構性消滅。
+  <strong>結論</strong>：所有 12 個 Tier A 空運桶中，最繁忙的只用到 12.3% 容量，最低 &lt; 0.1%。<strong>沒有任何一個桶會撞容量上限</strong>。LRP 借號根因是「所有類別擠同一桶」讓新竹一池年化 72,000 遠超 58,000 容量；v3.3 按類別拆到各自獨立桶後，每桶使用率自然被稀釋，借號結構性消滅。
 </div>
+
+<p style="font-size:13px; color:var(--gray-500);">Tier B/C 空運 / 各 Tier 海運的桶容量更大（923,521），實測使用率皆 &lt;1%，更不會撞。</p>
 </div>
 
 <!-- ============================================================ -->
