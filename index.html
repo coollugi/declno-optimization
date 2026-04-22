@@ -1258,9 +1258,9 @@
   </tbody>
 </table>
 
-<h3>8.2 切這麼細，會不會重蹈 LRP 借號覆轍？</h3>
+<h3>8.2 容量驗證：每桶不會撞上限</h3>
 
-<p>讀者看到 v3.3 把 counter_key 再加一個 station 維度，直覺會想：「每桶變得更小，新竹量那麼大還夠用嗎？」這裡用實測數字說清楚。</p>
+<p>v3.3 在 counter_key 加 station 維度後，Tier A 空運單桶容量從 v3.2 的 99,999 縮為 20,000。以下用 DB 實測數據說明單桶使用率。</p>
 
 <h4>一個桶 = 什麼？</h4>
 
@@ -1304,7 +1304,20 @@
 
 <h4>實測：2025 年所有 Tier A 空運桶使用量</h4>
 
-<p>Tier A 空運是所有 Tier 中容量最緊（20,000 / 桶）的。2025 年全五崧 Tier A 空運共 12 個活躍桶：</p>
+<div class="highlight-box">
+  <strong>20,000 容量怎麼來的？</strong>
+  <br>Excel 規則 Tier A 空運 pos10-14 = 純數字 5 碼，整個空間 = <code>00000</code> ~ <code>99999</code> = 100,000 號碼。v3.3 按首位數字切 5 站區段：
+  <ul style="margin:6px 0 0 24px; font-size:13px;">
+    <li>新竹 <code>00000-19999</code> = 20,000</li>
+    <li>桃園 <code>20000-39999</code> = 20,000</li>
+    <li>台中 <code>40000-59999</code> = 20,000</li>
+    <li>高雄 <code>60000-79999</code> = 20,000</li>
+    <li>台南 <code>80000-99999</code> = 20,000</li>
+  </ul>
+  所以 Tier A 空運「每站每 prefix 每年」的單桶容量為 <strong>20,000</strong>。
+</div>
+
+<p>Tier A 空運是所有 Tier 中容量最緊的。2025 年全五崧 Tier A 空運共 12 個活躍桶：</p>
 
 <table>
   <thead>
@@ -1974,15 +1987,57 @@
 
 <table>
   <thead>
-    <tr><th>#</th><th>Excel 規則</th><th>LRP source</th><th>DB 實測</th><th>分類</th></tr>
+    <tr><th>#</th><th>Excel 規則</th><th>LRP source</th><th>DB 實測</th><th>分類</th><th>新系統修正</th></tr>
   </thead>
   <tbody>
-    <tr><td>25</td><td>4+4 切法結構</td><td>✅ 按海/空切（應按類別）</td><td>✅ 結構 100% 符合</td><td><span class="tag tag-green">🟢（切法對）🔴（判斷依據錯）</span></td></tr>
-    <tr><td>26</td><td>B1/B2 園區字母 S/R 後補</td><td>✅ custdep.bfno 第 2 碼</td><td>✅ B2 99.76%</td><td><span class="tag tag-green">🟢</span></td></tr>
-    <tr><td>27</td><td>B1/B2 科技園區 N/K/Q/T/C 後補</td><td>✅ 同上</td><td>✅</td><td><span class="tag tag-green">🟢</span></td></tr>
-    <tr><td>28</td><td>G2 園區字母前補 0</td><td>✅ UI 層轉換</td><td>⚠️ 初版 4.97% → v3.1 88.76%</td><td><span class="tag tag-green">🟢</span></td></tr>
-    <tr><td>29</td><td>A72 自由港 5-14 碼不重複</td><td>✅ <code>lcGet_4</code></td><td>✅ 584+ 筆衝突避開</td><td><span class="tag tag-gray">⚪</span></td></tr>
-    <tr><td>30</td><td>B1 td_bfno 欄位</td><td>⚠️ 欄位存但語意不穩</td><td>❌ td_bfno 與 pos7-10 不一致</td><td><span class="tag tag-red">🔴</span></td></tr>
+    <tr>
+      <td>25</td>
+      <td>4+4 切法結構（B1/B2/G2 特殊）</td>
+      <td>⚠️ LRP 判斷依據是<strong>海/空運</strong>（Excel 是按<strong>報單類別</strong>）</td>
+      <td>✅ 結構 100% 符合（五崧 B1/B2/G2 幾乎都是海運，兩種判斷依據結果巧合吻合）</td>
+      <td><span class="tag tag-green">🟢</span></td>
+      <td>v3 改按 <code>declarationType</code> 判斷（<code>getScheme()</code>），去除對業務特性的依賴，避免未來出現「空運 B2 報單」或「海運 G1 報單」時判斷錯誤</td>
+    </tr>
+    <tr>
+      <td>26</td>
+      <td>B1/B2 園區字母 S/R 後補</td>
+      <td>✅ <code>custdep.bfno</code> 第 2 碼</td>
+      <td>✅ B2 99.76%</td>
+      <td><span class="tag tag-green">🟢</span>
+      <td>沿用</td>
+    </tr>
+    <tr>
+      <td>27</td>
+      <td>B1/B2 科技園區 N/K/Q/T/C 後補</td>
+      <td>✅ 同上</td>
+      <td>✅</td>
+      <td><span class="tag tag-green">🟢</span></td>
+      <td>沿用</td>
+    </tr>
+    <tr>
+      <td>28</td>
+      <td>G2 園區字母前補 0</td>
+      <td>✅ UI 層轉換</td>
+      <td>⚠️ 初版 4.97% → v3.1 88.76%</td>
+      <td><span class="tag tag-green">🟢</span></td>
+      <td><code>buildDeclNoPos7to10()</code> 依 declType 分歧處理</td>
+    </tr>
+    <tr>
+      <td>29</td>
+      <td>A72 自由港 5-14 碼不重複</td>
+      <td>✅ <code>lcGet_4</code></td>
+      <td>✅ 584+ 筆衝突避開</td>
+      <td><span class="tag tag-gray">⚪</span></td>
+      <td>新系統用 <code>checkCollision()</code> 明確查重</td>
+    </tr>
+    <tr>
+      <td>30</td>
+      <td>B1 td_bfno 欄位</td>
+      <td>⚠️ 欄位存但語意不穩</td>
+      <td>❌ td_bfno 與 pos7-10 不一致</td>
+      <td><span class="tag tag-red">🔴</span></td>
+      <td>不遷移此欄位，改從 <code>CustomerBondedBranch</code> 帶監管編號</td>
+    </tr>
   </tbody>
 </table>
 
