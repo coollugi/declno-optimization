@@ -1266,6 +1266,10 @@
 
 <p>v3.3 的一個桶 = 一組獨立遞增的號碼池，由 <code>counter_key = {recv}{declType}{yr}{pos7-9}{station}</code> 五維決定。同一年、同站、同類別、同箱號，才算同一桶。例如：</p>
 
+<div class="highlight-box" style="font-size:13px;">
+  <strong>符號說明</strong>：<code>recv</code> = 收單關別 2 碼、<code>declType</code> = 報單類別 2 碼、<code>yr</code> = <strong>民國年 2 碼</strong>（例如 2026 年 = <code>15</code>，依關務署「報單及轉運申請書編號原則」台總局電字第 8851046040 號函）、<code>pos7-9</code> = 箱號 3 碼、<code>station</code> = 站別（新竹 E / 桃園 F / 台中 G / 高雄 H / 台南 J）
+</div>
+
 <ul>
   <li><strong>桶 A</strong>：新竹站 + 收單 CW + D7 類別 + 2026 + 箱號 014 → 獨立計數</li>
   <li><strong>桶 B</strong>：桃園站 + 收單 CW + D7 類別 + 2026 + 箱號 014 → 跟桶 A 完全獨立，不共用號碼</li>
@@ -1388,7 +1392,7 @@
 
 <div class="code-block"><span class="keyword">CREATE TABLE</span> decl_no_counter (
     id            <span class="type">UUID</span> PRIMARY KEY <span class="keyword">DEFAULT</span> gen_random_uuid(),
-    counter_key   <span class="type">VARCHAR(10)</span> <span class="keyword">NOT NULL UNIQUE</span>,   <span class="comment">// {recv(2)}{declType(2)}{yr(2)}{pos7-9(3)}</span>
+    counter_key   <span class="type">VARCHAR(11)</span> <span class="keyword">NOT NULL UNIQUE</span>,   <span class="comment">// {recv(2)}{declType(2)}{民國年(2)}{pos7-9(3)}{station(1)}</span>
     next_seq      <span class="type">INTEGER</span> <span class="keyword">NOT NULL</span> <span class="keyword">DEFAULT</span> <span class="type">1</span>,
     charset       <span class="type">VARCHAR(10)</span> <span class="keyword">NOT NULL</span>,           <span class="comment">// 'NUMERIC' | 'BASE31'</span>
     seq_length    <span class="type">INTEGER</span> <span class="keyword">NOT NULL</span>,               <span class="comment">// 5 (空運) / 4 (海運)</span>
