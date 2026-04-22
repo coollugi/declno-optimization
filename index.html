@@ -269,7 +269,7 @@
 <h2>一、報告摘要</h2>
 
 <div class="success-box">
-  <strong>方案總結：</strong>將流水號第 1 碼改為<strong>站碼字母</strong>（A＝新竹、B＝桃園...），後續改為<strong>英數序號</strong>（base-31，排除海關官方及易混淆字母），同站所有報單類別共用一個遞增計數器。此方案同時解決三個核心問題：<strong>容量不足（借號）</strong>、<strong>A72 自貿區撞號</strong>、<strong>站別辨識</strong>，且報單號碼格式完全符合海關 14 碼規定。
+  <strong>方案總結：</strong>將流水號第 1 碼改為<strong>站碼字母</strong>（E＝新竹、F＝桃園...），後續改為<strong>英數序號</strong>（base-31，排除海關官方及易混淆字母），同站所有報單類別共用一個遞增計數器。此方案同時解決三個核心問題：<strong>容量不足（借號）</strong>、<strong>A72 自貿區撞號</strong>、<strong>站別辨識</strong>，且報單號碼格式完全符合海關 14 碼規定。
 </div>
 
 <div class="stat-grid">
@@ -371,13 +371,13 @@
     <tr>
       <td>空運（5 碼）</td>
       <td><code>{站碼字母}</code> + <code>{4 位英數序號}</code></td>
-      <td><code>A0001</code>, <code>A01B5</code></td>
+      <td><code>E0001</code>, <code>E01B5</code></td>
       <td style="text-align:center; white-space:nowrap;">923,521</td>
     </tr>
     <tr>
       <td>海運（4 碼）</td>
       <td><code>{站碼字母}</code> + <code>{3 位英數序號}</code></td>
-      <td><code>A001</code>, <code>A1B5</code></td>
+      <td><code>E001</code>, <code>E1B5</code></td>
       <td style="text-align:center; white-space:nowrap;">29,791</td>
     </tr>
     <tr>
@@ -396,11 +396,11 @@
     <tr><th>辦公室</th><th>現行站碼</th><th>新站碼字母</th><th>現行流水號範例</th><th>新流水號範例</th></tr>
   </thead>
   <tbody>
-    <tr><td><strong>新竹</strong></td><td>AJ100</td><td style="text-align:center; font-weight:700; font-size:18px; color:var(--success);">A</td><td><code>02001</code>~<code>59999</code></td><td><code>A0001</code></td></tr>
-    <tr><td>桃園</td><td>AE100</td><td style="text-align:center; font-weight:700; font-size:18px; color:var(--success);">B</td><td><code>60000</code>~<code>69999</code></td><td><code>B0001</code></td></tr>
-    <tr><td>台中</td><td>AH100</td><td style="text-align:center; font-weight:700; font-size:18px; color:var(--success);">C</td><td><code>C0001</code></td><td><code>C0001</code></td></tr>
-    <tr><td>高雄</td><td>AF110</td><td style="text-align:center; font-weight:700; font-size:18px; color:var(--success);">D</td><td><code>80000</code>~<code>89999</code></td><td><code>D0001</code></td></tr>
-    <tr><td>台南</td><td>AF100</td><td style="text-align:center; font-weight:700; font-size:18px; color:var(--success);">E</td><td><code>90000</code>~<code>99999</code></td><td><code>E0001</code></td></tr>
+    <tr><td><strong>新竹</strong></td><td>AJ100</td><td style="text-align:center; font-weight:700; font-size:18px; color:var(--success);">E</td><td><code>02001</code>~<code>59999</code></td><td><code>E0001</code></td></tr>
+    <tr><td>桃園</td><td>AE100</td><td style="text-align:center; font-weight:700; font-size:18px; color:var(--success);">F</td><td><code>60000</code>~<code>69999</code></td><td><code>F0001</code></td></tr>
+    <tr><td>台中</td><td>AH100</td><td style="text-align:center; font-weight:700; font-size:18px; color:var(--success);">G</td><td><code>C0001</code></td><td><code>G0001</code></td></tr>
+    <tr><td>高雄</td><td>AF110</td><td style="text-align:center; font-weight:700; font-size:18px; color:var(--success);">H</td><td><code>80000</code>~<code>89999</code></td><td><code>H0001</code></td></tr>
+    <tr><td>台南</td><td>AF100</td><td style="text-align:center; font-weight:700; font-size:18px; color:var(--success);">J</td><td><code>90000</code>~<code>99999</code></td><td><code>J0001</code></td></tr>
   </tbody>
 </table>
 
@@ -421,7 +421,7 @@
   <div class="comparison-card new">
     <h4>新系統</h4>
     <p>計數器 key = <strong>民國年 + 箱號 + 站碼字母</strong></p>
-    <p style="margin-top:4px; font-family:'SF Mono',monospace; font-size:14px; color:var(--gray-500);">例：<code>15014A</code> = 民國 115 年 + 箱號 014 + 新竹</p>
+    <p style="margin-top:4px; font-family:'SF Mono',monospace; font-size:14px; color:var(--gray-500);">例：<code>15014E</code> = 民國 115 年 + 箱號 014 + 新竹</p>
     <p style="font-size:13px; color:var(--gray-500); margin-top:8px;">
       同一個 key 下，<strong>所有報單類別共用一個遞增序號</strong><br>
       CW、CA、CB、CWF2、BCB6... 都從同一個 counter 拿號<br>
@@ -458,7 +458,7 @@
 </div>
 
 <div class="highlight-box">
-  <strong>對 OP 的影響：</strong>每年前 ~10,000 筆取號的流水號仍為純數字（<code>A0001</code>~<code>A9999</code>），與目前閱讀習慣相同。超過 10,000 筆後才會出現英數混合（如 <code>A00A0</code>）。以新竹最大宗的 CW+014 為例，約前 4 個月的取號為純數字。
+  <strong>對 OP 的影響：</strong>每年前 ~10,000 筆取號的流水號仍為純數字（<code>E0001</code>~<code>E9999</code>），與目前閱讀習慣相同。超過 10,000 筆後才會出現英數混合（如 <code>E00A0</code>）。以新竹最大宗的 CW+014 為例，約前 4 個月的取號為純數字。
 </div>
 
 <h3>3.6 按月彙報保留機制</h3>
@@ -471,9 +471,14 @@
   </thead>
   <tbody>
     <tr>
-      <td><strong>字母</strong>（A-Z）</td>
+      <td><strong>字母 E-Y</strong>（排除 I/L/O/S/Z）</td>
       <td>一般報單自動取號</td>
       <td>系統自動遞增</td>
+    </tr>
+    <tr>
+      <td><strong>字母 A-D</strong></td>
+      <td>關區代碼保留（保稅/雜項海運）</td>
+      <td>OP 手動指定</td>
     </tr>
     <tr>
       <td><strong>數字</strong>（0-9）</td>
@@ -483,7 +488,106 @@
   </tbody>
 </table>
 
-<p>兩者以<strong>開頭字元類型</strong>（字母 vs 數字）天然區隔，系統自動取號永遠從字母開頭，不會佔用到保留區。</p>
+<p>三個區域以<strong>開頭字元</strong>天然區隔：數字開頭（0-9）= 按月彙報保留、A-D 開頭 = 關區代碼保留、E-Y 開頭 = 系統自動取號。系統自動取號永遠從 E 以後的字母開頭，不會佔用到任何保留區。</p>
+
+<h3>3.7 保留號碼與自動取號的隔離</h3>
+
+<p>根據 <strong>03_報單號碼_保留清單_115年度</strong> 實際資料，保留號碼同時使用<strong>數字開頭</strong>（00001~00600）和<strong>字母開頭</strong>（B001~B999, D001~D050）兩種格式。字母開頭的保留號碼使用的是<strong>關區代碼</strong>（A＝基隆、B＝高雄、C＝空運、D＝台中），因此站碼字母<strong>必須避開 A-D</strong>。</p>
+
+<p>新系統將流水號空間分為 <strong>3 個區域</strong>，互不重疊：</p>
+
+<!-- 流水號空間分區圖 -->
+<div style="margin:20px 0;">
+  <div style="display:flex; border-radius:8px; overflow:hidden; font-size:13px; font-weight:600; height:48px; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+    <div style="flex:2.8; background:linear-gradient(135deg,#ef4444,#f97316); color:#fff; display:flex; align-items:center; justify-content:center; padding:0 8px; text-align:center; border-right:2px solid #fff;">
+      0-9 數字保留<br><span style="font-weight:400; font-size:11px;">按月彙報 / 一般保留</span>
+    </div>
+    <div style="flex:1.1; background:linear-gradient(135deg,#f97316,#eab308); color:#fff; display:flex; align-items:center; justify-content:center; padding:0 8px; text-align:center; border-right:2px solid #fff;">
+      A-D 關區保留<br><span style="font-weight:400; font-size:11px;">保稅 / 雜項海運</span>
+    </div>
+    <div style="flex:5.8; background:linear-gradient(135deg,#059669,#10b981); color:#fff; display:flex; align-items:center; justify-content:center; padding:0 8px; text-align:center;">
+      E-Y 系統自動取號<br><span style="font-weight:400; font-size:11px;">排除 I/L/O/S/Z，共 17 個字母可用</span>
+    </div>
+  </div>
+  <div style="display:flex; font-size:11px; color:var(--gray-500); margin-top:4px;">
+    <div style="flex:2.8; text-align:center;">OP 手動指定</div>
+    <div style="flex:1.1; text-align:center;">OP 手動指定</div>
+    <div style="flex:5.8; text-align:center;">系統自動遞增</div>
+  </div>
+</div>
+
+<table>
+  <thead>
+    <tr><th>區域</th><th>開頭字元</th><th>用途</th><th>取號方式</th><th>範例</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="tag tag-red">數字保留區</span></td>
+      <td><strong>0-9</strong></td>
+      <td>按月彙報 + 一般保留</td>
+      <td>OP 手動指定</td>
+      <td><code>00001</code>~<code>00600</code></td>
+    </tr>
+    <tr>
+      <td><span class="tag tag-orange">關區保留區</span></td>
+      <td><strong>A-D</strong></td>
+      <td>關區代碼保留（保稅/雜項海運）</td>
+      <td>OP 手動指定</td>
+      <td><code>B001</code>~<code>B999</code>, <code>D001</code>~<code>D050</code></td>
+    </tr>
+    <tr>
+      <td><span class="tag tag-green">系統自動區</span></td>
+      <td><strong>E-Y</strong>（排除 I/L/O/S/Z）</td>
+      <td>一般報單自動取號</td>
+      <td>系統自動遞增</td>
+      <td><code>E0001</code>, <code>F0001</code>, <code>G001</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4>115年度保留清單實例</h4>
+
+<table>
+  <thead>
+    <tr><th>保留案例</th><th>流水號範圍</th><th style="text-align:center;">開頭</th><th>新系統歸類</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>英特格 CA+014</td>
+      <td><code>00001</code>~<code>00600</code></td>
+      <td style="text-align:center;">數字</td>
+      <td><span class="tag tag-red">數字保留區</span></td>
+    </tr>
+    <tr>
+      <td>台積電 CBD7+014</td>
+      <td><code>00001</code>~<code>00350</code></td>
+      <td style="text-align:center;">數字</td>
+      <td><span class="tag tag-red">數字保留區</span></td>
+    </tr>
+    <tr>
+      <td>瑞肯 BBD7+312B</td>
+      <td><code>B001</code>~<code>B999</code></td>
+      <td style="text-align:center;">B</td>
+      <td><span class="tag tag-orange">關區保留區</span></td>
+    </tr>
+    <tr>
+      <td>日通 DCD7+194D</td>
+      <td><code>D001</code>~<code>D050</code></td>
+      <td style="text-align:center;">D</td>
+      <td><span class="tag tag-orange">關區保留區</span></td>
+    </tr>
+    <tr>
+      <td>新竹自動取號</td>
+      <td><code>E0001</code>~</td>
+      <td style="text-align:center;">E</td>
+      <td><span class="tag tag-green">系統自動</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="success-box">
+  <strong>三區互不重疊：</strong>數字開頭永遠是保留區、A-D 開頭是關區代碼保留區、E-Y 開頭才是系統自動取號區。OP 手動指定的保留號碼不可能與系統自動取號衝突。
+</div>
 
 </div>
 
@@ -530,7 +634,7 @@
 
 <h3>4.3 新方案如何從架構層消滅 A72</h3>
 
-<p>新方案的計數器 key 為 <code>民國年 + 箱號 + 站碼字母</code>，<strong>不含報單類別 prefix</strong>。因此，同站所有報單類別共用同一個遞增計數器：</p>
+<p>新方案的計數器 key 為 <code>民國年 + 箱號 + 站碼字母</code>（如 <code>15014E</code>），<strong>不含報單類別 prefix</strong>。因此，同站所有報單類別共用同一個遞增計數器：</p>
 
 <table>
   <thead>
@@ -541,33 +645,33 @@
       <td>1</td>
       <td>CW 一般出口</td>
       <td class="num">1</td>
-      <td><code>A0001</code></td>
-      <td class="decl-no"><span class="decl-part-prefix">CW  </span><span class="decl-part-check">15014</span><span class="decl-part-station">A</span><span class="decl-part-seq">0001</span></td>
-      <td><code>15014A0001</code></td>
+      <td><code>E0001</code></td>
+      <td class="decl-no"><span class="decl-part-prefix">CW  </span><span class="decl-part-check">15014</span><span class="decl-part-station">E</span><span class="decl-part-seq">0001</span></td>
+      <td><code>15014E0001</code></td>
     </tr>
     <tr>
       <td>2</td>
       <td>CWF2 自貿出口</td>
       <td class="num">2</td>
-      <td><code>A0002</code></td>
-      <td class="decl-no"><span class="decl-part-prefix">CWF2</span><span class="decl-part-check">15014</span><span class="decl-part-station">A</span><span class="decl-part-seq">0002</span></td>
-      <td><code>15014A0002</code></td>
+      <td><code>E0002</code></td>
+      <td class="decl-no"><span class="decl-part-prefix">CWF2</span><span class="decl-part-check">15014</span><span class="decl-part-station">E</span><span class="decl-part-seq">0002</span></td>
+      <td><code>15014E0002</code></td>
     </tr>
     <tr>
       <td>3</td>
       <td>CB 一般進口</td>
       <td class="num">3</td>
-      <td><code>A0003</code></td>
-      <td class="decl-no"><span class="decl-part-prefix">CB  </span><span class="decl-part-check">15014</span><span class="decl-part-station">A</span><span class="decl-part-seq">0003</span></td>
-      <td><code>15014A0003</code></td>
+      <td><code>E0003</code></td>
+      <td class="decl-no"><span class="decl-part-prefix">CB  </span><span class="decl-part-check">15014</span><span class="decl-part-station">E</span><span class="decl-part-seq">0003</span></td>
+      <td><code>15014E0003</code></td>
     </tr>
     <tr>
       <td>4</td>
       <td>BCB6 保稅</td>
       <td class="num">4</td>
-      <td><code>A0004</code></td>
-      <td class="decl-no"><span class="decl-part-prefix">BCB6</span><span class="decl-part-check">15014</span><span class="decl-part-station">A</span><span class="decl-part-seq">0004</span></td>
-      <td><code>15014A0004</code></td>
+      <td><code>E0004</code></td>
+      <td class="decl-no"><span class="decl-part-prefix">BCB6</span><span class="decl-part-check">15014</span><span class="decl-part-station">E</span><span class="decl-part-seq">0004</span></td>
+      <td><code>15014E0004</code></td>
     </tr>
   </tbody>
 </table>
@@ -588,36 +692,36 @@
   <tbody>
     <tr>
       <td>同站、同箱號、不同報單類別</td>
-      <td><code>CW  15014<strong>A0001</strong></code></td>
-      <td><code>CWF215014<strong>A0002</strong></code></td>
+      <td><code>CW  15014<strong>E0001</strong></code></td>
+      <td><code>CWF215014<strong>E0002</strong></code></td>
       <td><span class="tag tag-green">不可能</span></td>
       <td>共用 counter，序號必不同</td>
     </tr>
     <tr>
       <td>不同站、同箱號、同報單類別</td>
-      <td><code>CW  15014<strong>A</strong>0001</code></td>
-      <td><code>CW  15014<strong>B</strong>0001</code></td>
+      <td><code>CW  15014<strong>E</strong>0001</code></td>
+      <td><code>CW  15014<strong>F</strong>0001</code></td>
       <td><span class="tag tag-green">不可能</span></td>
       <td>站碼字母不同</td>
     </tr>
     <tr>
       <td>不同站、同箱號、不同報單類別</td>
-      <td><code>CW  15014<strong>A</strong>0001</code></td>
-      <td><code>CWF215014<strong>B</strong>0001</code></td>
+      <td><code>CW  15014<strong>E</strong>0001</code></td>
+      <td><code>CWF215014<strong>F</strong>0001</code></td>
       <td><span class="tag tag-green">不可能</span></td>
       <td>站碼字母不同</td>
     </tr>
     <tr>
       <td>同站、不同箱號</td>
-      <td><code>CW  15<strong>014</strong>A0001</code></td>
-      <td><code>CW  15<strong>367</strong>A0001</code></td>
+      <td><code>CW  15<strong>014</strong>E0001</code></td>
+      <td><code>CW  15<strong>367</strong>E0001</code></td>
       <td><span class="tag tag-green">不可能</span></td>
       <td>箱號不同 → 第 7-9 碼不同</td>
     </tr>
     <tr>
       <td>同站、同箱號、不同年度</td>
-      <td><code>CW  <strong>15</strong>014A0001</code></td>
-      <td><code>CW  <strong>16</strong>014A0001</code></td>
+      <td><code>CW  <strong>15</strong>014E0001</code></td>
+      <td><code>CW  <strong>16</strong>014E0001</code></td>
       <td><span class="tag tag-green">不可能</span></td>
       <td>年度不同 → 第 5-6 碼不同</td>
     </tr>
@@ -698,12 +802,12 @@ G2 本地補稅:   收單(2) + G2(2)   + 年(2) + 箱號(3)    + 流水號(5)  =
     <tr><th>報單類型</th><th>中間欄位</th><th>Counter Key</th><th>流水號碼數</th></tr>
   </thead>
   <tbody>
-    <tr><td>一般空運（CW, CB, CA...）</td><td>箱號 <code>014</code></td><td><code>15014A</code></td><td>5 碼</td></tr>
-    <tr><td>自貿區空運（CWF2, BCB6...）</td><td>箱號 <code>014</code></td><td><code>15014A</code></td><td>5 碼</td></tr>
-    <tr><td>G2 本地補稅空運</td><td>箱號 <code>014</code></td><td><code>15014A</code></td><td>5 碼</td></tr>
-    <tr><td>區內空運（CSCW...）</td><td>箱號 <code>014</code></td><td><code>15014A</code></td><td>5 碼</td></tr>
-    <tr><td>一般海運（DA...）</td><td>船隻掛號 <code>194E</code></td><td><code>15194EA</code></td><td>4 碼</td></tr>
-    <tr><td>G2 海運雜項</td><td>箱號+關別 <code>015A</code></td><td><code>15015AA</code></td><td>4 碼</td></tr>
+    <tr><td>一般空運（CW, CB, CA...）</td><td>箱號 <code>014</code></td><td><code>15014E</code></td><td>5 碼</td></tr>
+    <tr><td>自貿區空運（CWF2, BCB6...）</td><td>箱號 <code>014</code></td><td><code>15014E</code></td><td>5 碼</td></tr>
+    <tr><td>G2 本地補稅空運</td><td>箱號 <code>014</code></td><td><code>15014E</code></td><td>5 碼</td></tr>
+    <tr><td>區內空運（CSCW...）</td><td>箱號 <code>014</code></td><td><code>15014E</code></td><td>5 碼</td></tr>
+    <tr><td>一般海運（DA...）</td><td>船隻掛號 <code>194E</code></td><td><code>15194EG</code></td><td>4 碼</td></tr>
+    <tr><td>G2 海運雜項</td><td>箱號+關別 <code>015A</code></td><td><code>15015AE</code></td><td>4 碼</td></tr>
   </tbody>
 </table>
 
@@ -744,55 +848,55 @@ G2 本地補稅:   收單(2) + G2(2)   + 年(2) + 箱號(3)    + 流水號(5)  =
     <tr>
       <td>一般空運出口 G3</td>
       <td>新竹</td>
-      <td class="decl-no"><span class="decl-part-prefix">CW  </span>15014<span class="decl-part-station">A</span>0001</td>
+      <td class="decl-no"><span class="decl-part-prefix">CW  </span>15014<span class="decl-part-station">E</span>0001</td>
       <td>最常見的報單類型</td>
     </tr>
     <tr>
       <td>一般空運進口 G1</td>
       <td>桃園</td>
-      <td class="decl-no"><span class="decl-part-prefix">CB  </span>15014<span class="decl-part-station">B</span>0001</td>
-      <td>桃園用 B 字母</td>
+      <td class="decl-no"><span class="decl-part-prefix">CB  </span>15014<span class="decl-part-station">F</span>0001</td>
+      <td>桃園用 F 字母</td>
     </tr>
     <tr>
       <td>區內出口（科學園區）</td>
       <td>新竹</td>
-      <td class="decl-no"><span class="decl-part-prefix">CSCW</span>15014<span class="decl-part-station">A</span>0042</td>
+      <td class="decl-no"><span class="decl-part-prefix">CSCW</span>15014<span class="decl-part-station">E</span>0042</td>
       <td>與一般出口共用 counter</td>
     </tr>
     <tr>
       <td>自貿區出口 F4</td>
       <td>新竹</td>
-      <td class="decl-no"><span class="decl-part-prefix">CWF4</span>15014<span class="decl-part-station">A</span>0043</td>
+      <td class="decl-no"><span class="decl-part-prefix">CWF4</span>15014<span class="decl-part-station">E</span>0043</td>
       <td>緊接上一筆序號</td>
     </tr>
     <tr>
       <td>自貿區進口 F2</td>
       <td>新竹</td>
-      <td class="decl-no"><span class="decl-part-prefix">CWF2</span>15014<span class="decl-part-station">A</span>0044</td>
+      <td class="decl-no"><span class="decl-part-prefix">CWF2</span>15014<span class="decl-part-station">E</span>0044</td>
       <td>同 counter，A72 不可能撞</td>
     </tr>
     <tr>
       <td>保稅 B6</td>
       <td>新竹</td>
-      <td class="decl-no"><span class="decl-part-prefix">BCB6</span>15014<span class="decl-part-station">A</span>0045</td>
+      <td class="decl-no"><span class="decl-part-prefix">BCB6</span>15014<span class="decl-part-station">E</span>0045</td>
       <td>同 counter</td>
     </tr>
     <tr>
       <td>海運出口</td>
       <td>台中</td>
-      <td class="decl-no"><span class="decl-part-prefix">DA  </span>15194E<span class="decl-part-station">C</span>001</td>
+      <td class="decl-no"><span class="decl-part-prefix">DA  </span>15194E<span class="decl-part-station">G</span>001</td>
       <td>海運 4 碼：1 字母 + 3 英數</td>
     </tr>
     <tr>
       <td>轉運 T1</td>
       <td>新竹</td>
-      <td class="decl-no"><span class="decl-part-prefix">CACS</span>15014<span class="decl-part-station">A</span>0046</td>
+      <td class="decl-no"><span class="decl-part-prefix">CACS</span>15014<span class="decl-part-station">E</span>0046</td>
       <td>同 counter</td>
     </tr>
     <tr>
       <td>高雄箱號 312</td>
       <td>高雄</td>
-      <td class="decl-no"><span class="decl-part-prefix">BFCA</span>15312<span class="decl-part-station">D</span>0001</td>
+      <td class="decl-no"><span class="decl-part-prefix">BFCA</span>15312<span class="decl-part-station">H</span>0001</td>
       <td>不同箱號 = 不同 counter key</td>
     </tr>
     <tr>
@@ -843,35 +947,35 @@ G2 本地補稅:   收單(2) + G2(2)   + 年(2) + 箱號(3)    + 流水號(5)  =
 
 <div class="bar-chart">
   <div class="bar-row">
-    <div class="bar-label">新竹 A</div>
+    <div class="bar-label">新竹 E</div>
     <div class="bar-track">
       <div class="bar-fill" style="width:9.4%; min-width:40px; background:#059669;">9.4%</div>
     </div>
     <div class="bar-info">年化需求 ~87,000 / 容量 923,521 <span class="tag tag-green">充裕</span></div>
   </div>
   <div class="bar-row">
-    <div class="bar-label">桃園 B</div>
+    <div class="bar-label">桃園 F</div>
     <div class="bar-track">
       <div class="bar-fill" style="width:1%; min-width:30px; background:#059669;">0.4%</div>
     </div>
     <div class="bar-info">年化需求 ~6,200 / 容量 923,521 <span class="tag tag-green">充裕</span></div>
   </div>
   <div class="bar-row">
-    <div class="bar-label">台中 C</div>
+    <div class="bar-label">台中 G</div>
     <div class="bar-track">
       <div class="bar-fill" style="width:1%; min-width:30px; background:#059669;">0.1%</div>
     </div>
     <div class="bar-info">年化需求 ~2,500 / 容量 923,521 <span class="tag tag-green">充裕</span></div>
   </div>
   <div class="bar-row">
-    <div class="bar-label">高雄 D</div>
+    <div class="bar-label">高雄 H</div>
     <div class="bar-track">
       <div class="bar-fill" style="width:1%; min-width:30px; background:#059669;">0.1%</div>
     </div>
     <div class="bar-info">年化需求 ~1,900 / 容量 923,521 <span class="tag tag-green">充裕</span></div>
   </div>
   <div class="bar-row">
-    <div class="bar-label">台南 E</div>
+    <div class="bar-label">台南 J</div>
     <div class="bar-track">
       <div class="bar-fill" style="width:1%; min-width:30px; background:#059669;">0.2%</div>
     </div>
@@ -964,7 +1068,7 @@ G2 本地補稅:   收單(2) + G2(2)   + 年(2) + 箱號(3)    + 流水號(5)  =
     <tr>
       <td><strong>站別辨識</strong></td>
       <td>看數字區間（02xxx=新竹, 6xxxx=桃園...）</td>
-      <td><span class="tag tag-green">看第 1 碼字母</span>（A=新竹, B=桃園...）</td>
+      <td><span class="tag tag-green">看第 1 碼字母</span>（E=新竹, F=桃園...）</td>
     </tr>
     <tr>
       <td><strong>按月彙報</strong></td>
@@ -1061,7 +1165,7 @@ G2 本地補稅:   收單(2) + G2(2)   + 年(2) + 箱號(3)    + 流水號(5)  =
     <tr>
       <td>年底號碼用完導致作業停擺</td>
       <td><span class="tag tag-red">高</span></td>
-      <td><span class="tag tag-green">消除</span>（容量 168 萬）</td>
+      <td><span class="tag tag-green">消除</span>（容量 92 萬）</td>
     </tr>
     <tr>
       <td>並發取號撞號</td>
@@ -1084,7 +1188,7 @@ G2 本地補稅:   收單(2) + G2(2)   + 年(2) + 箱號(3)    + 流水號(5)  =
 <div class="code-block"><span class="comment">-- 報單號碼計數器（取代 SCUSDECLNO / SCUSDECLNO_NEW / SCUSDECNO）</span>
 <span class="keyword">CREATE TABLE</span> <span class="type">decl_no_counter</span> (
     <span class="func">id</span>            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    <span class="func">counter_key</span>   VARCHAR(10) NOT NULL UNIQUE,  <span class="comment">-- 例: '15014A'（年+箱號+站碼字母）</span>
+    <span class="func">counter_key</span>   VARCHAR(10) NOT NULL UNIQUE,  <span class="comment">-- 例: '15014E'（年+箱號+站碼字母）</span>
     <span class="func">next_seq</span>      INTEGER NOT NULL DEFAULT 1,   <span class="comment">-- 下一個可用序號</span>
     <span class="func">seq_length</span>    INTEGER NOT NULL DEFAULT 4,   <span class="comment">-- 序號碼數（空運4 / 海運3）</span>
     <span class="func">created_at</span>    TIMESTAMP DEFAULT NOW(),
@@ -1092,8 +1196,8 @@ G2 本地補稅:   收單(2) + G2(2)   + 年(2) + 箱號(3)    + 流水號(5)  =
 );
 
 <span class="comment">-- counter_key 格式 = {民國年2碼}{箱號3碼}{站碼字母1碼}</span>
-<span class="comment">-- 例: '15014A' = 民國115年 + 箱號014 + 新竹(A)</span>
-<span class="comment">-- 例: '15312D' = 民國115年 + 箱號312 + 高雄(D)</span>
+<span class="comment">-- 例: '15014E' = 民國115年 + 箱號014 + 新竹(E)</span>
+<span class="comment">-- 例: '15312H' = 民國115年 + 箱號312 + 高雄(H)</span>
 <span class="comment">-- 每個 key 獨立計數，年度自動隔離（因年份不同 = 不同 key）</span></div>
 
 <h3>8.2 取號核心邏輯</h3>
@@ -1104,13 +1208,13 @@ G2 本地補稅:   收單(2) + G2(2)   + 年(2) + 箱號(3)    + 流水號(5)  =
 <span class="keyword">const</span> BASE31_CHARS = <span class="string">'0123456789ABCDEFGHJKMNPQRTUVWXY'</span>;
 
 <span class="comment">/**
- * 將整數轉換為 base-31 字串（排除 I/O/S/Z）
+ * 將整數轉換為 base-31 字串（排除 I/L/O/S/Z）
  * toBase31(1, 4)     → '0001'
- * toBase31(9999, 4)  → '9LF7'
+ * toBase31(9999, 4)  → '9MF7'
  * toBase31(10, 3)    → '00A'
  */</span>
 <span class="keyword">function</span> <span class="func">toBase31</span>(num: <span class="type">number</span>, length: <span class="type">number</span>): <span class="type">string</span> {
-  <span class="keyword">const</span> base = BASE31_CHARS.length; <span class="comment">// 32</span>
+  <span class="keyword">const</span> base = BASE31_CHARS.length; <span class="comment">// 31</span>
   <span class="keyword">let</span> result = <span class="string">''</span>;
   <span class="keyword">let</span> n = num;
 
@@ -1129,7 +1233,7 @@ G2 本地補稅:   收單(2) + G2(2)   + 年(2) + 箱號(3)    + 流水號(5)  =
   prefix: <span class="type">string</span>,         <span class="comment">// 報單前 4 碼，例: 'CW  ', 'CWF2', 'CACS'</span>
   rocYear: <span class="type">string</span>,       <span class="comment">// 民國年 2 碼，例: '15'</span>
   boxNo: <span class="type">string</span>,         <span class="comment">// 箱號，例: '014'</span>
-  stationCode: <span class="type">string</span>,   <span class="comment">// 站碼字母，例: 'A'（新竹）</span>
+  stationCode: <span class="type">string</span>,   <span class="comment">// 站碼字母，例: 'E'（新竹）</span>
   seqLength: <span class="type">number</span>,     <span class="comment">// 序號碼數：空運=4, 海運=3</span>
 ): <span class="type">Promise</span>&lt;<span class="type">string</span>&gt; {
 
@@ -1168,20 +1272,20 @@ G2 本地補稅:   收單(2) + G2(2)   + 年(2) + 箱號(3)    + 流水號(5)  =
 <h3>8.3 使用範例</h3>
 
 <div class="code-block"><span class="comment">// 新竹 一般出口</span>
-<span class="keyword">await</span> <span class="func">getNextDeclNo</span>(<span class="string">'CW  '</span>, <span class="string">'15'</span>, <span class="string">'014'</span>, <span class="string">'A'</span>, 4);
-<span class="comment">// → 'CW  15014A0001'</span>
+<span class="keyword">await</span> <span class="func">getNextDeclNo</span>(<span class="string">'CW  '</span>, <span class="string">'15'</span>, <span class="string">'014'</span>, <span class="string">'E'</span>, 4);
+<span class="comment">// → 'CW  15014E0001'</span>
 
 <span class="comment">// 新竹 自貿區出口（同一個 counter，序號接續）</span>
-<span class="keyword">await</span> <span class="func">getNextDeclNo</span>(<span class="string">'CWF2'</span>, <span class="string">'15'</span>, <span class="string">'014'</span>, <span class="string">'A'</span>, 4);
-<span class="comment">// → 'CWF215014A0002'  ← 5-14碼與上面不同，A72 不可能撞</span>
+<span class="keyword">await</span> <span class="func">getNextDeclNo</span>(<span class="string">'CWF2'</span>, <span class="string">'15'</span>, <span class="string">'014'</span>, <span class="string">'E'</span>, 4);
+<span class="comment">// → 'CWF215014E0002'  ← 5-14碼與上面不同，A72 不可能撞</span>
 
 <span class="comment">// 桃園 一般出口（不同站 = 不同 counter key）</span>
-<span class="keyword">await</span> <span class="func">getNextDeclNo</span>(<span class="string">'CW  '</span>, <span class="string">'15'</span>, <span class="string">'014'</span>, <span class="string">'B'</span>, 4);
-<span class="comment">// → 'CW  15014B0001'  ← 字母 B，不會跟新竹的 A 撞</span>
+<span class="keyword">await</span> <span class="func">getNextDeclNo</span>(<span class="string">'CW  '</span>, <span class="string">'15'</span>, <span class="string">'014'</span>, <span class="string">'F'</span>, 4);
+<span class="comment">// → 'CW  15014F0001'  ← 字母 F，不會跟新竹的 E 撞</span>
 
 <span class="comment">// 台中 海運出口（海運用 3 碼序號）</span>
-<span class="keyword">await</span> <span class="func">getNextDeclNo</span>(<span class="string">'DA  '</span>, <span class="string">'15'</span>, <span class="string">'194E'</span>, <span class="string">'C'</span>, 3);
-<span class="comment">// → 'DA  15194EC001'</span></div>
+<span class="keyword">await</span> <span class="func">getNextDeclNo</span>(<span class="string">'DA  '</span>, <span class="string">'15'</span>, <span class="string">'194E'</span>, <span class="string">'G'</span>, 3);
+<span class="comment">// → 'DA  15194EG001'</span></div>
 
 <h3>8.4 程式碼量對比</h3>
 
@@ -1228,7 +1332,7 @@ G2 本地補稅:   收單(2) + G2(2)   + 年(2) + 箱號(3)    + 流水號(5)  =
   </thead>
   <tbody>
     <tr><td>現行 LRP</td><td><code>02001</code>, <code>60001</code>, <code>80001</code></td><td>數字 (0-9)</td><td rowspan="2" style="vertical-align:middle; text-align:center;"><span class="tag tag-green">不可能</span></td></tr>
-    <tr><td>新系統</td><td><code>A0001</code>, <code>B0001</code>, <code>C0001</code></td><td>字母 (A-Z)</td></tr>
+    <tr><td>新系統</td><td><code>E0001</code>, <code>F0001</code>, <code>G0001</code></td><td>字母 (E-Y)</td></tr>
   </tbody>
 </table>
 
@@ -1254,17 +1358,18 @@ G2 本地補稅:   收單(2) + G2(2)   + 年(2) + 箱號(3)    + 流水號(5)  =
     </tr>
     <tr>
       <td>2</td>
-      <td><strong>站碼字母分配 — 避開關區代碼</strong><br>
-          海關官方規定中，字母 A、B、C、D 已作為關區代碼使用（A=基隆、B=高雄、C=空運、D=台中）。<br>
-          <span style="font-size:13px; color:var(--gray-500);">建議站碼字母從 <strong>E 以後</strong>選用（如 E=新竹、F=桃園、G=台中、H=高雄、J=台南），或確認使用 A-E 是否與現有系統衝突。</span></td>
-      <td>IT / Inchen</td>
-      <td><span class="tag tag-orange">需確認</span></td>
+      <td><strong>站碼字母分配 — 最終確認</strong><br>
+          站碼字母已避開關區代碼 A-D（A=基隆、B=高雄、C=空運、D=台中），分配如下：<br>
+          <span style="font-size:13px; color:var(--gray-500);"><strong>E</strong>=新竹、<strong>F</strong>=桃園、<strong>G</strong>=台中、<strong>H</strong>=高雄、<strong>J</strong>=台南（跳過 I，為海關排除字母）。</span><br>
+          <span style="font-size:13px; color:var(--gray-500);">請 OP 確認此分配是否可接受，或有偏好調整。</span></td>
+      <td>OP 主管</td>
+      <td><span class="tag tag-blue">偏好確認</span></td>
     </tr>
     <tr>
       <td>3</td>
       <td><strong>按月彙報保留範圍</strong><br>
           現行保留 00000~01999（2,000 個），是否足夠？<br>
-          <span style="font-size:13px; color:var(--gray-500);">新方案下數字開頭共可保留 00000~09999（10,000 個）</span></td>
+          <span style="font-size:13px; color:var(--gray-500);">新方案下數字開頭共可保留 00000~09999（10,000 個），另有 A-D 開頭保留區供關區代碼保留使用。</span></td>
       <td>OP 主管</td>
       <td><span class="tag tag-blue">偏好確認</span></td>
     </tr>
@@ -1272,11 +1377,12 @@ G2 本地補稅:   收單(2) + G2(2)   + 年(2) + 箱號(3)    + 流水號(5)  =
 </table>
 
 <div class="orange-box">
-  <strong>第 1 項為阻擋項目（Blocker）。</strong>若確認下游系統不支援英數流水號，則需改用純數字方案（共用 counter + 不分段，容量 99,999）。該方案仍可解決借號和 A72 問題，但 OP 將失去從流水號辨識站別的能力。
+  <strong>第 1 項為阻擋項目（Blocker）。</strong>若確認下游系統不支援英數流水號，則需改用純數字方案（共用 counter + 不分段，容量 99,999）。該方案仍可解決借號和 A72 問題，但 OP 將失去從流水號辨識站別的能力。<br><br>
+  <strong>已解決：</strong>站碼字母已避開 A-D 關區代碼保留區，改用 E/F/G/H/J，不會與 115 年度保留清單中的 B001~B999、D001~D050 等保留號碼衝突。
 </div>
 
 <div class="footnote">
-  <p><strong>報告依據：</strong>報單取號機制分析報告（2026-04-01）、五崧 IT（Inchen）問題回覆（2026-04-02）、財政部關務署不受理報關原因代碼表（A72，114.6.9 修正）、財政部關務署「報單及轉運申請書編號原則」（台總局電字第 8851046040 號函）、LRP 原始碼分析（PUB_FUNC.pas lcGet_No_1_New / lcGet_No_2）。</p>
+  <p><strong>報告依據：</strong>報單取號機制分析報告（2026-04-01）、五崧 IT（Inchen）問題回覆（2026-04-02）、財政部關務署不受理報關原因代碼表（A72，114.6.9 修正）、財政部關務署「報單及轉運申請書編號原則」（台總局電字第 8851046040 號函）、LRP 原始碼分析（PUB_FUNC.pas lcGet_No_1_New / lcGet_No_2）、03_報單號碼_保留清單_115年度（保留號碼分析）。</p>
   <p><strong>前置報告：</strong>報關系統 — 報單取號機制分析報告（2026-04-01）詳述現行問題診斷與資料庫數據分析。</p>
 </div>
 
