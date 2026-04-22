@@ -415,6 +415,36 @@
   </tbody>
 </table>
 
+<h3>規則來源層級（Excel vs LRP vs DB 取捨原則）</h3>
+
+<p>三方驗證發現同一條規則在不同資料源可能有不同版本。本方案按規則性質分層對待：</p>
+
+<table>
+  <thead>
+    <tr><th>層級</th><th>來源</th><th>原則</th><th>範例</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>合規層</strong></td>
+      <td>Excel 明訂海關合規規定</td>
+      <td><strong>Excel 為主</strong>，實作必須符合，違反會被海關拒收</td>
+      <td>14 碼長度、I/L/O 黑名單、A72 查重、B1/B2/G2 4+4 切法</td>
+    </tr>
+    <tr>
+      <td><strong>實務彈性層</strong></td>
+      <td>Excel 寫「任意」「預設」「不鎖」等彈性條文</td>
+      <td><strong>DB 實測 + OP 慣例為主</strong>，在 Excel 允許範圍內按實務偏好設計</td>
+      <td>Tier B 海運 pos10「任意英字」→ 預設 E/I；Tier C 海運「不鎖」→ 按類別預設</td>
+    </tr>
+    <tr>
+      <td><strong>三方衝突</strong></td>
+      <td>Excel 是海關要求 vs 業務建議</td>
+      <td>合規強制則以 Excel 為主；業務建議可以跟 DB/OP 慣例</td>
+      <td>Tier C 海運 T1 類別 DB 實測 98% 純數字 → 新系統預設數字起首（Excel 允許）</td>
+    </tr>
+  </tbody>
+</table>
+
 <h3>三方驗證關鍵發現</h3>
 
 <table>
@@ -571,11 +601,23 @@
 </div>
 
 <div class="tier-card tier-c">
-  <h4><span class="badge">Tier C</span> 寬 — 空運 pos10 = 站碼字母 E/F/G/H/J / 海運 pos10 不鎖（預設 pos1 可改） + 4 英數</h4>
+  <h4><span class="badge">Tier C</span> 寬 — 空運 pos10 = 站碼字母 E/F/G/H/J / 海運 pos10 按類別預設 + 4 英數</h4>
   <p><strong>適用類別</strong>：<code>T1</code>（轉儲）/ <code>F4</code>（自由港區間）/ <code>D1</code>（課稅區/保稅倉）/ <code>D5 / B8 / B9</code>（自由港版）/ <code>F5</code>（船舶供油）</p>
   <p><strong>空運規則</strong>：同 Tier B — pos10 = 站碼字母 + pos11-14 BASE31 4 碼</p>
-  <p><strong>海運規則</strong>：pos10 預設 pos1（收單關別第 1 字）、OP 可改任意英數字。站別靠 entity + 列印尾碼</p>
-  <p><strong>DB 吻合率</strong>：D1 pos1=pos10 84% / F4 60% / T1 偏純數字 79.7%（實務反而偏嚴）</p>
+  <p><strong>海運規則</strong>：Excel 不鎖，但 DB 實測各類別 OP 有不同偏好 — <strong>Layer 1 按類別決定預設</strong>：</p>
+  <table style="margin-top:4px;">
+    <thead>
+      <tr><th>類別</th><th>Layer 1 預設</th><th>DB 實測</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>D1</code></td><td>pos1（收單首字）</td><td>pos10='D' 63.77% / pos1=pos10 59.29%</td></tr>
+      <tr><td><code>F4</code></td><td>無預設，OP 自填</td><td>pos10 分散（最高 `6` 31%，無主流）</td></tr>
+      <tr><td><code>T1</code></td><td><strong>預設 `0` 起首（純數字 5 碼）</strong></td><td>pos10 98.20% 純數字，`0`/`1`/`2` 共 88%</td></tr>
+      <tr><td>D5/B8/B9 FTZ</td><td>沿用 D1 預設</td><td>量少（&lt;200/年）</td></tr>
+      <tr><td>F5 船舶</td><td>無預設</td><td>五崧歷年 0 筆</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:13px; color:var(--gray-500);">站別靠 entity + 列印尾碼（同 Tier A/B 海運）。此設計遵循「Excel 允許彈性 → DB 實務為主」原則 — Excel 只說「不鎖」，新系統設預設值 OP 仍可改，不違反 Excel。</p>
 </div>
 
 <h3>3.2 類別 → Tier 對應（完整對照見附錄 A）</h3>
@@ -686,7 +728,7 @@
 <h3>3.7 海運站別辨識（補償方案）</h3>
 
 <div class="purple-box">
-  <strong>海運 pos10 被 Excel 規則鎖死字母</strong>（Tier A 收單首字 / Tier B E/I / Tier C 預設 pos1），無空間放站別。補償三件組：
+  <strong>海運 pos10 被 Excel 規則 / OP 慣例佔用</strong>（Tier A 收單首字 / Tier B 預設 E/I / Tier C 按類別預設），無空間放站別。補償三件組：
   <ol style="margin:10px 0 4px 22px; font-size:14px;">
     <li><strong>Entity 欄位</strong>：<code>CustomsDeclaration.createdByStation: StationCode</code>（打單 OP 所屬站自動帶入）</li>
     <li><strong>列印檔名尾碼</strong>：<code>{declNo}-{station}.{ext}</code>，例：<code>CWD2151420579-H.pdf</code>（高雄 = H）</li>
@@ -1978,7 +2020,7 @@
     <tr><td>10</td><td>Tier B 空運 5 英數</td><td>⚠️</td><td>✅ 實測 100% 純數字（比 Excel 嚴）</td><td><span class="tag tag-gray">⚪</span></td></tr>
     <tr><td>11</td><td>Tier B 海運 pos10 任意英字（實務 E/I）</td><td>❌ 無強制</td><td>⚠️ 54-88% 主流 E/I</td><td><span class="tag tag-orange">🟡</span></td></tr>
     <tr><td>12</td><td>Tier B 海運 pos11-14 = 4 英數</td><td>⚠️</td><td>✅</td><td><span class="tag tag-green">🟢</span></td></tr>
-    <tr><td>13</td><td>Tier C 海運 pos10 不鎖</td><td>⚠️</td><td>⚠️ 實測反而偏緊</td><td><span class="tag tag-red">🔴</span></td></tr>
+    <tr><td>13</td><td>Tier C 海運 pos10 不鎖</td><td>⚠️</td><td>⚠️ 實測各類別有不同偏好（D1 pos10='D' 63.77%、F4 分散、T1 98% 純數字）</td><td><span class="tag tag-orange">🟡</span></td></tr>
     <tr><td>14</td><td>Tier C 空運 5 英數</td><td>⚠️</td><td>✅ T1 純數字 79.7%</td><td><span class="tag tag-green">🟢</span></td></tr>
   </tbody>
 </table>
@@ -2112,7 +2154,7 @@
     <div class="bar-track">
       <div class="bar-fill" style="width:16%; background:var(--danger);">5 條</div>
     </div>
-    <div class="bar-info">B1 類別鎖、Tier C 海運、G5/G7/T1 郵包、B1 td_bfno</div>
+    <div class="bar-info">G5/G7/T1 郵包、B1 td_bfno</div>
   </div>
 </div>
 
