@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>報關系統 — 報單取號優化方案 v3.3</title>
+<title>報關系統 — 報單取號優化方案 v3.4</title>
 <style>
   :root {
     --primary: #1a56db;
@@ -321,9 +321,9 @@
   <div class="meta">
     <span>八拍子</span>
     <span>2026 年 4 月</span>
-    <span>承接 v3.2（2026-04-22），補 OP 離線分派需求</span>
+    <span>承接 v3.3（2026-04-22），補 Tier A 實測使用率 + 容量監控擴容策略 + EDI POC 待驗</span>
   </div>
-  <div class="version-badge">v3.3（2026-04-22）</div>
+  <div class="version-badge">v3.4（2026-04-24）</div>
 </div>
 
 <!-- ============================================================ -->
@@ -339,7 +339,7 @@
     <li><a href="#s5">監管編號處理（B1 / B2 / G2）</a></li>
     <li><a href="#s6">各類報單情境走讀</a></li>
     <li><a href="#s7">容量分析與告警</a></li>
-    <li><a href="#s8">新舊方案對比（v2 → v3.2）</a></li>
+    <li><a href="#s8">演進對比（v2 → v3.2 → v3.3 → v3.4）</a></li>
     <li><a href="#s9">技術實作參考</a></li>
     <li><a href="#s10">Legacy 遷移策略</a></li>
     <li><a href="#s11">待確認事項</a></li>
@@ -353,20 +353,25 @@
 <div class="section" id="s1">
 <h2>一、報告摘要與三方驗證</h2>
 
-<p>本方案歷經三版迭代：v2（2026-04-09 交付）以「站碼字母 E-J + base-31 英數序號」為核心，解「借號」+「站別辨識」；v3 / v3.2（2026-04-21 ~ 22）收到貴公司《報單號碼規則 Excel》後展開<strong>三方交叉驗證</strong>（Excel × LRP 原始碼 × DB 10 年實測 2.7 M 筆），按 23 類別分 Tier A/B/C 三層；v3.3（2026-04-22）補回站別維度 — <strong>把站別加進 counter_key</strong>並在空運 pos10 恢復站別辨識，同時保留「借號結構性消滅」核心（counter_key 含 prefix + declType + station，每桶獨立）。</p>
+<p>本方案歷經四版迭代：v2（2026-04-09 交付）以「站碼字母 E-J + base-31 英數序號」為核心，解「借號」+「站別辨識」；v3 / v3.2（2026-04-21 ~ 22）收到貴公司《報單號碼規則 Excel》後展開<strong>三方交叉驗證</strong>（Excel × LRP 原始碼 × DB 10 年實測 2.7 M 筆），按 23 類別分 Tier A/B/C 三層；v3.3（2026-04-22）補回站別維度 — <strong>把站別加進 counter_key</strong>並在空運 pos10 恢復站別辨識，同時保留「借號結構性消滅」核心（counter_key 含 prefix + declType + station，每桶獨立）；v3.4（2026-04-24）補 Tier A 實測使用率 + 容量監控擴容策略 + 一般 B6/D8 字母 pos10 EDI POC 待驗項。</p>
 
 <div class="success-box">
-  <strong>方案總結（v3.3）：</strong>
+  <strong>方案總結（v3.4）：</strong>
   <ol style="margin:10px 0 4px 22px; font-size:14px;">
     <li><strong>每類別每 prefix 每站獨立 counter</strong> → 借號結構性消滅（承自 v3）</li>
     <li><strong>Tier A/B/C 三層流水號規則</strong> → 符合 Excel 23 類完整覆蓋（承自 v3.2）</li>
     <li><strong>空運恢復站別辨識</strong>：Tier A 用首位數字區段、Tier B/C 用站碼字母 E/F/G/H/J（v3.3 新）</li>
     <li><strong>海運補 entity + 列印尾碼</strong>：因 Excel 規則鎖 pos10 字母，改靠 <code>createdByStation</code> 欄位 + 檔名 <code>-E/F/G/H/J</code> 尾碼（v3.3 新）</li>
+    <li><strong>容量監控 + 三擴容方案</strong>：12K/15K/18K 三級告警（綠/黃/紅）+ 擴容三選項（新竹擴段 / 借站 / 回共享池）— v3.4 新</li>
   </ol>
 </div>
 
 <div class="highlight-box">
   <strong>為什麼要補回站別維度</strong>（v3.2 → v3.3）：IT（Inchen）補充，各區 OP 從海關拿到報單資料後，<strong>不進系統</strong>看流水號開頭就要能快速區分哪一站、完成分派寄送。v3.2 只靠系統 badge 顯示站別，離線場景無解 —— v3.3 把站別寫回號碼本身（空運）+ 列印尾碼（海運）。
+</div>
+
+<div class="highlight-box">
+  <strong>為什麼要補 v3.4 容量監控與 EDI POC</strong>（v3.3 → v3.4）：Stanley 第三輪 feedback 觸發實測釐清 —— v3.3 切段後每個 counter 容量 20K，DB 實測 2025 年單一 counter 最高 <strong>BSD714312 + AJ100 = 2,429 筆 = 12.15%</strong>，遠低於 20K 上限。Stanley 原本看到 AJ100 站 Tier A 類別跨 counter 合計 23,521 筆擔心爆表 — 但 (a) 他 SQL 漏 <code>WAREHSE_YN='Y'</code> 過濾把 16K 筆一般 B6 誤算進 Tier A（實際歸 Tier B），(b) 真實 Tier A 跨 counter 合計 7,439 筆散佈在 10+ 個 counter，每個 counter 獨立 20K。以 CAGR 16.5% 推估樂觀撐到 ~2039、保守 30% 撐到 ~2033。v3.4 因此補三級告警閾值與三條擴容路徑，同時抓到一個必須驗證的 EDI 風險項 — 一般 B6/D8 空運 LRP 10 年 99.99% 打純數字 pos10（OP 紀律），但 Excel 允許英數字，新系統按 Tier B 自動帶站碼字母恢復辨識，需請 Stanley 協助跑 EDI POC 確認海關 Customs Exchange 接受字母版。
 </div>
 
 <div class="stat-grid">
@@ -676,11 +681,11 @@
     <tr><th>站</th><th>區段首位</th><th>counter 範圍</th><th>容量</th><th>DB 實測最高使用率</th></tr>
   </thead>
   <tbody>
-    <tr><td><strong>新竹</strong></td><td class="center"><code>0, 1</code></td><td class="center"><code>00000 – 19999</code></td><td class="num">20,000</td><td class="center">~12%（BS+D7+2025 = 2,468）</td></tr>
-    <tr><td>桃園</td><td class="center"><code>2, 3</code></td><td class="center"><code>20000 – 39999</code></td><td class="num">20,000</td><td class="center">—</td></tr>
-    <tr><td>台中</td><td class="center"><code>4, 5</code></td><td class="center"><code>40000 – 59999</code></td><td class="num">20,000</td><td class="center">—</td></tr>
-    <tr><td>高雄</td><td class="center"><code>6, 7</code></td><td class="center"><code>60000 – 79999</code></td><td class="num">20,000</td><td class="center">—</td></tr>
-    <tr><td>台南</td><td class="center"><code>8, 9</code></td><td class="center"><code>80000 – 99999</code></td><td class="num">20,000</td><td class="center">—</td></tr>
+    <tr><td><strong>新竹</strong></td><td class="center"><code>0, 1</code></td><td class="center"><code>00000 – 19999</code></td><td class="num">20,000</td><td class="center">單一 counter 最高 <strong>~12%</strong>（BS+D7+2025 = 2,468 × AJ100 占比）<br>全站 Tier A 跨 counter 合計 7,439</td></tr>
+    <tr><td>桃園</td><td class="center"><code>2, 3</code></td><td class="center"><code>20000 – 39999</code></td><td class="num">20,000</td><td class="center">單一 counter &lt; 5%</td></tr>
+    <tr><td>台中</td><td class="center"><code>4, 5</code></td><td class="center"><code>40000 – 59999</code></td><td class="num">20,000</td><td class="center">單一 counter &lt; 3%</td></tr>
+    <tr><td>高雄</td><td class="center"><code>6, 7</code></td><td class="center"><code>60000 – 79999</code></td><td class="num">20,000</td><td class="center">單一 counter &lt; 3%</td></tr>
+    <tr><td>台南</td><td class="center"><code>8, 9</code></td><td class="center"><code>80000 – 99999</code></td><td class="num">20,000</td><td class="center">單一 counter &lt; 2%</td></tr>
   </tbody>
 </table>
 
@@ -1110,61 +1115,77 @@
   </tbody>
 </table>
 
-<h3>7.2 Task B DB 實測（2026-04-22）：Tier A 空運實際使用率</h3>
+<h3>7.2 Task B DB 實測（2026-04-22 / v3.4 2026-04-24 補）：Tier A 空運實際使用率</h3>
 
-<p>Tier A 空運是所有 Tier 中容量最緊（每站 20,000）的。抓 DB 2021-2025 五年資料，按 <code>(收單關別, 類別, 年份)</code> 分組看實際使用量：</p>
+<p>Tier A 空運是所有 Tier 中容量最緊（每站 20,000）的。v3.3 切段後 counter_key 含 station，每個 counter 獨立 20K 容量。抓 DB 2021-2025 五年資料，按 <strong>v3.3 五維 counter_key（收單關別 + 類別 + 年份 + 箱號 + 站別）</strong> 分組看實際使用量：</p>
 
 <table>
   <thead>
-    <tr><th>Prefix</th><th>2021</th><th>2022</th><th>2023</th><th>2024</th><th>2025</th><th>年度最高使用率</th></tr>
+    <tr><th>v3.3 單一 counter</th><th>2025 筆數</th><th>使用率 (/ 20K)</th></tr>
   </thead>
   <tbody>
     <tr>
-      <td><code>BS + D7</code></td>
-      <td class="num">1,290</td>
-      <td class="num">1,621</td>
-      <td class="num">1,598</td>
-      <td class="num">2,415</td>
-      <td class="num"><strong>2,468</strong></td>
-      <td class="num"><strong>2.47%</strong></td>
+      <td><code>BSD714312 + AJ100</code>（新竹 D7）</td>
+      <td class="num"><strong>2,429</strong></td>
+      <td class="num"><strong>12.15%</strong>（全站最高）</td>
     </tr>
     <tr>
-      <td><code>CS + D7</code></td>
-      <td class="num">1,290</td>
-      <td class="num">1,621</td>
-      <td class="num">1,598</td>
-      <td class="num"><strong>2,415</strong></td>
-      <td class="num">1,097</td>
-      <td class="num">2.42%</td>
+      <td><code>CWB614014 + AJ100</code>（新竹 B6 FTZ）</td>
+      <td class="num">1,672</td>
+      <td class="num">8.36%</td>
     </tr>
     <tr>
-      <td><code>CB + D2</code></td>
-      <td class="num">2,339</td>
-      <td class="num"><strong>2,404</strong></td>
-      <td class="num">2,220</td>
-      <td class="num">2,044</td>
-      <td class="num">1,874</td>
-      <td class="num">2.40%</td>
+      <td><code>CSD714014 + AJ100</code>（新竹 D7 科管局）</td>
+      <td class="num">1,080</td>
+      <td class="num">5.40%</td>
     </tr>
     <tr>
-      <td><code>CW + B6 FTZ</code></td>
-      <td class="num">1,558</td>
-      <td class="num">1,681</td>
-      <td class="num">1,473</td>
-      <td class="num">1,843</td>
-      <td class="num"><strong>2,192</strong></td>
-      <td class="num">2.19%</td>
+      <td><code>CBD214014 + AJ100</code>（新竹 D2）</td>
+      <td class="num">988</td>
+      <td class="num">4.94%</td>
+    </tr>
+    <tr>
+      <td><code>CBD214014 + AE100</code>（桃園 D2）</td>
+      <td class="num">719</td>
+      <td class="num">3.60%</td>
+    </tr>
+    <tr>
+      <td><code>CWF214014 + AJ100</code>（新竹 F2 FTZ）</td>
+      <td class="num">313</td>
+      <td class="num">1.57%</td>
     </tr>
   </tbody>
 </table>
 
+<div class="highlight-box">
+  <strong>v3.4 澄清：單一 counter vs 全站合計是兩個不同維度</strong>
+  <p style="margin-top:8px;">Stanley 第三輪 feedback 原擔心「新竹 AJ100 2025 Tier A 類別合計 23,521 &gt; 20K 會爆」— 但那 23,521 (a) 包含 16K 筆一般 B6（歸 Tier B 不是 Tier A，他 SQL 漏 WAREHSE_YN='Y' 過濾），(b) 真實 Tier A 7,439 筆也是<strong>散佈在 10+ 個 counter</strong>（不同關別 × 類別 × 箱號組合），每個 counter 獨立 20K 容量。實際單一 counter 最高 2,429 筆 = 12.15% 遠低於上限。</p>
+</div>
+
+<p><strong>新竹 AJ100 Tier A 近 5 年成長趨勢</strong>（全站 Tier A 類別合計，反映業務量）：</p>
+
+<table>
+  <thead>
+    <tr><th>年份</th><th>新竹 AJ100 全 Tier A 合計</th><th>YoY</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>2021</td><td class="num">4,039</td><td>—</td></tr>
+    <tr><td>2022</td><td class="num">4,517</td><td>+11.8%</td></tr>
+    <tr><td>2023</td><td class="num">4,390</td><td>-2.8%</td></tr>
+    <tr><td>2024</td><td class="num">6,106</td><td>+39.1%</td></tr>
+    <tr><td><strong>2025</strong></td><td class="num"><strong>7,439</strong></td><td>+21.8%</td></tr>
+  </tbody>
+</table>
+
+<p style="font-size:14px;">5 年 CAGR <strong>16.5%</strong>，近 2 年加速 ~30%（反映自由港區 / 保稅業務擴張）。成長引擎：D7 CAGR 16.9%、B6 FTZ 31.4%、F2 FTZ 55.2%（基數小）。</p>
+
 <div class="bar-chart">
   <div class="bar-row">
-    <div class="bar-label">Tier A 空運 / 站</div>
+    <div class="bar-label">Tier A 空運單 counter / 年</div>
     <div class="bar-track">
-      <div class="bar-fill" style="width:12%; background:var(--danger);">12%</div>
+      <div class="bar-fill" style="width:12%; background:var(--danger);">12.15%</div>
     </div>
-    <div class="bar-info">年度最高 2,468 / 20,000（高雄 BS+D7）</div>
+    <div class="bar-info">2025 最高 BSD714312+AJ100 = 2,429 / 20,000</div>
   </div>
   <div class="bar-row">
     <div class="bar-label">Tier A 海運</div>
@@ -1176,40 +1197,84 @@
   <div class="bar-row">
     <div class="bar-label">Tier B/C 空運 / 站</div>
     <div class="bar-track">
-      <div class="bar-fill" style="width:0.1%; background:var(--success);">≪1%</div>
+      <div class="bar-fill" style="width:6.1%; background:var(--success);">6.11%</div>
     </div>
-    <div class="bar-info">pos11-14 BASE31 4 碼 = 923,521 / 站</div>
+    <div class="bar-info">最大 CW+014+AJ100 = 56,390 / 923,521</div>
   </div>
 </div>
 
-<h3>7.3 告警閾值建議（v3.3）</h3>
+<h3>7.3 告警閾值建議（v3.4 更新）</h3>
 
 <div class="success-box">
-  <strong>Tier A 空運告警（單站單 prefix / 年）</strong>：
+  <strong>Tier A 空運告警（單 counter / 年）</strong>：
   <ul style="margin-top:8px;">
-    <li><span class="tag tag-orange">一級告警 10,000 筆（50% 容量）</span> — 發 email 通知運營主管</li>
-    <li><span class="tag tag-red">二級告警 16,000 筆（80% 容量）</span> — 通知 IT 並準備應變（可臨時把空位區段借給爆桶站）</li>
-    <li><span class="tag tag-red">封鎖 19,800 筆（99% 容量）</span> — 自動擋號，強制改用其他站區段</li>
+    <li><span class="tag tag-green">🟢 綠燈 &lt; 12,000 筆（60% 容量）</span> — 現況（2025 最高 2,429 = 12.15%）</li>
+    <li><span class="tag tag-orange">🟡 黃燈 15,000 筆（75% 容量）</span> — 啟動擴容評估（見 §7.4）</li>
+    <li><span class="tag tag-red">🔴 紅燈 18,000 筆（90% 容量）</span> — 執行擴容</li>
   </ul>
   <p style="margin-top:8px; font-size:13px; color:var(--gray-500);">
-    以歷史最大值 2,468 / 年計算（高雄 BS+D7），需要<strong>約 4 倍</strong>業務爆發才會觸發一級告警。若某站真爆，IT 可把旁邊站的未用區段臨時開給它（不影響借號解法 — 跨桶不跨 counter_key）。
+    以 2025 單 counter 最高 2,429 + CAGR 16.5% 推估：樂觀約 <strong>2039</strong> 才逼近 20K；以近 2 年 CAGR 30% 保守推估約 <strong>2033</strong>。Tier B/C 容量 92 萬遠超需求，不設告警。
   </p>
 </div>
 
+<h3>7.4 擴容三方案（v3.4 新增）</h3>
+
+<p>屆時（Tier A 任一 counter 到紅燈）可選以下三方案之一，不需改 decl_no 格式：</p>
+
+<table>
+  <thead>
+    <tr><th>方案</th><th>做法</th><th>擴容後</th><th>Trade-off</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="center"><strong>A</strong></td>
+      <td>該站 pos10 首位擴一碼（例：新竹 0-1 擴為 0-2）</td>
+      <td class="num">30K / counter</td>
+      <td>其他站首位區段要讓出 1 碼；改動 Layer 1 autocomplete 規則</td>
+    </tr>
+    <tr>
+      <td class="center"><strong>B</strong></td>
+      <td>動態借其他站區段（類似 LRP 借號但自動化）</td>
+      <td class="num">依需求</td>
+      <td>跨站共用號段，站別辨識變弱（仍可從配置表查）</td>
+    </tr>
+    <tr>
+      <td class="center"><strong>C</strong></td>
+      <td>Tier A 回共享池（不切站）</td>
+      <td class="num">100K / prefix</td>
+      <td>Tier A 空運（約 5% 報單）失去流水號首位肉眼辨識站別，改靠 <code>createdByStation</code> 欄位 + 列印檔名尾碼 <code>-{station}</code>（跟海運一致）；Tier B/C 空運 E-J 字母辨識維持；海運行為不變</td>
+    </tr>
+  </tbody>
+</table>
+
+<p style="font-size:14px; margin-top:12px;">
+  方案 C 容量最大（5 倍），適合自由港區業務持續高速（~30%）成長的情境，長期最穩。海運所有 Tier 本來就沒有流水號肉眼辨識站別（pos10 是進出口字母或收單首字），方案 C 實際上只是把 Tier A 空運對齊海運現行行為。方案 A/B 保留站別肉眼辨識但擴容倍數有限（1.5-2 倍），只延後爆表時間。
+</p>
+
+<h3>7.5 EDI POC 待驗項（v3.4 新增）</h3>
+
 <div class="highlight-box">
-  <strong>為什麼 Tier A 空運從 v3.2 的 99,999 縮到 v3.3 的 20,000</strong>？v3.3 把 5 站切分到同一個 pos10-14 空間 → 單站空間變 1/5。但每站仍獨立 counter，不會有「新竹撞滿、桃園閒置」的不平衡（LRP 舊痛點）。10 年 DB 實測每站單 prefix 最高 2,468，20,000 有 8 倍緩衝。
+  <strong>項目</strong>：一般 B6/D8 空運 pos10 = 站碼字母 E-J（新系統 Tier B 規則自動帶入）
+  <ul style="margin-top:8px;">
+    <li><strong>Excel 規則</strong>：一般 B6/D8 空運「5 位英數字」= Tier B（容量 92 萬/站）</li>
+    <li><strong>LRP 現況</strong>：DB 實測 99.99% 打純數字 pos10（新竹 B6 一般 2025 = 16,079 純數字 / 16,080 全量）— OP 紀律，非海關強制</li>
+    <li><strong>新系統</strong>：按 Tier B 規則自動帶字母（恢復站別辨識 + OP 不手打無訓練成本）</li>
+    <li><strong>風險</strong>：EDI 端（Customs Exchange）未驗過字母版一般 B6/D8，理論上符合 Excel 規則應接受，但需實測確認</li>
+    <li><strong>驗證方式</strong>：請 Stanley 協助跑 POC，打一張一般 B6（pos10 = E 新竹）送海關 Customs Exchange，觀察是否收到 EA 狀態退件或順利通關</li>
+    <li><strong>Fallback</strong>：若 EDI 不接受字母，一般 B6/D8 沿用 LRP 現況純數字 pos10，歸 Tier A 範圍；當任一 counter 逼近 20K 時執行 §7.4 擴容方案</li>
+  </ul>
 </div>
 </div>
 
 <!-- ============================================================ -->
 <div class="section" id="s8">
-<h2>八、演進對比（v2 → v3.2 → v3.3）</h2>
+<h2>八、演進對比（v2 → v3.2 → v3.3 → v3.4）</h2>
 
-<p>本方案歷經三版迭代，每版有明確的觸發事件與設計取捨：</p>
+<p>本方案歷經四版迭代，每版有明確的觸發事件與設計取捨：</p>
 
 <table style="font-size:13px;">
   <thead>
-    <tr><th>版本</th><th>日期</th><th>觸發</th><th>核心特徵</th><th>主要問題</th></tr>
+    <tr><th>版本</th><th>日期</th><th>觸發</th><th>核心特徵</th><th>主要問題 / 待驗</th></tr>
   </thead>
   <tbody>
     <tr>
@@ -1231,7 +1296,49 @@
       <td>2026-04-22</td>
       <td>IT 補充 OP 離線分派痛點</td>
       <td>counter_key 加 station 維度 + 空運恢復站別（Tier A 數字區段 / Tier B/C 字母）+ 海運 entity 補</td>
+      <td>Tier A 空運容量從 v3.2 的 100K/prefix 切到 v3.3 的 20K/counter，需確認實測使用率</td>
+    </tr>
+    <tr>
+      <td><span class="tag tag-green">v3.4</span></td>
+      <td>2026-04-24</td>
+      <td>Stanley 第三輪 feedback 觸發容量釐清</td>
+      <td>補 v3.3 切段後實測使用率 + 容量監控三級告警 + 擴容三方案 + 一般 B6/D8 EDI POC 待驗項</td>
+      <td>EDI 端驗證字母 pos10 一般 B6/D8（請 Stanley 協助）</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>8.0 v3.3 → v3.4 關鍵差異</h3>
+
+<table>
+  <thead>
+    <tr><th>項目</th><th>v3.3</th><th>v3.4</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Tier A 使用率數字</td>
+      <td>~2.5%（BS+D7+2025 = 2,468 / 100K，來自 v3.2 共享池基礎）</td>
+      <td>12.15%（BSD714312+AJ100 = 2,429 / 20K，按 v3.3 五維 counter_key 重算）</td>
+    </tr>
+    <tr>
+      <td>容量告警</td>
+      <td>10K/16K/19.8K 三級</td>
+      <td>12K/15K/18K 三級（綠/黃/紅）</td>
+    </tr>
+    <tr>
+      <td>擴容策略</td>
+      <td>未明列</td>
+      <td>三方案（新竹擴段 / 借站 / 回共享池）+ trade-off</td>
+    </tr>
+    <tr>
+      <td>一般 B6/D8 空運 pos10</td>
+      <td>沿用 LRP 現況（實務上純數字）</td>
+      <td>新系統自動帶字母（Tier B 規則）恢復站別辨識，需 EDI POC 驗</td>
+    </tr>
+    <tr>
+      <td>Stanley 誤判釐清</td>
       <td>—</td>
+      <td>其 SQL 漏 <code>WAREHSE_YN='Y'</code> 過濾把一般 B6/D8（Tier B）誤算進 Tier A 合計 23,521，真實 Tier A 合計 7,439 且跨 10+ counter</td>
     </tr>
   </tbody>
 </table>
@@ -1671,7 +1778,7 @@
 <div class="section" id="s11">
 <h2>十一、待確認事項</h2>
 
-<p>本 v3.3 內部優化已做完，剩餘事項需規則制訂方 / 管理層確認。完整題目集見《<strong>取號規則待確認題目集-2026-04-22.xlsx</strong>》，關鍵摘要：</p>
+<p>本 v3.4 內部優化已做完（v3.3 切段設計 + v3.4 容量實測 + 擴容三方案 + EDI POC 待驗），剩餘事項需規則制訂方 / 管理層確認。完整題目集見《<strong>取號規則待確認題目集-2026-04-22.xlsx</strong>》，關鍵摘要：</p>
 
 <table>
   <thead>
@@ -1692,9 +1799,15 @@
     </tr>
     <tr>
       <td>Q11b</td>
-      <td><strong>Tier A 空運容量告警閾值（v3.3）</strong>：建議 10K / 16K / 19.8K 三級（每站單 prefix）可以嗎？LRP 現在撞單站容量如何處理？</td>
+      <td><strong>✅ 2026-04-24 已確認</strong>：v3.4 閾值採 12K 綠 / 15K 黃 / 18K 紅（單 counter / 年）。2025 實測單 counter 最高 BSD714312+AJ100 = 2,429 筆 = 12.15%，遠低於告警線。擴容方案見 §7.4。</td>
       <td>規則制訂方 / 報關主管</td>
-      <td><span class="tag tag-blue">低</span>：僅影響監控告警邏輯</td>
+      <td><span class="tag tag-green">已解</span></td>
+    </tr>
+    <tr>
+      <td><strong>EDI POC（v3.4 新增）</strong></td>
+      <td><strong>一般 B6/D8 空運字母 pos10 EDI 接受驗證</strong>：LRP 10 年實務 99.99% 純數字，新系統按 Tier B 自動帶字母 E-J，請 Stanley 協助跑 POC 確認海關 Customs Exchange 接受字母版一般 B6/D8（詳見 §7.5）。</td>
+      <td>Stanley / IT</td>
+      <td><span class="tag tag-red">高</span>：影響一般 B6/D8 取號策略上線</td>
     </tr>
     <tr>
       <td><strong>Q16（v3.3 新增）</strong></td>
